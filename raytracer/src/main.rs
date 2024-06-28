@@ -60,7 +60,7 @@ impl Vec3 {
             e: [x.e[0] / y, x.e[1] / y, x.e[2] / y],
         }
     }
-    fn _dot(x: &Self, y: &Self) -> f64 {
+    fn dot(x: &Self, y: &Self) -> f64 {
         x.e[0] * y.e[0] + x.e[1] * y.e[1] + x.e[2] * y.e[2]
     }
     fn _cross(x: &Self, y: &Self) -> Self {
@@ -92,20 +92,36 @@ type Color = Vec3;
 type Point3 = Vec3;
 struct Ray {
     dir: Vec3,
-    _ori: Point3,
+    ori: Point3,
 }
 impl Ray {
     fn _at(&self, t: f64) -> Point3 {
-        Vec3::add(&self._ori, &Vec3::mul(&self.dir, t))
+        Vec3::add(&self.ori, &Vec3::mul(&self.dir, t))
     }
     fn _clone(&self) -> Self {
         Self {
             dir: self.dir.clone(),
-            _ori: self._ori.clone(),
+            ori: self.ori.clone(),
         }
     }
 }
+fn hit_the_ball(center: &Point3, radius: f64, r: &Ray) -> bool {
+    let oc = Vec3::del(&center, &r.ori);
+    let a = Vec3::dot(&r.dir, &r.dir);
+    let b = -2.0 * Vec3::dot(&r.dir, &oc);
+    let c = Vec3::dot(&oc, &oc) - radius * radius;
+    b * b - 4.0 * a * c >= 0.0
+}
 fn ray_color(r: &Ray) -> Color {
+    if hit_the_ball(
+        &Point3 {
+            e: [0.0, 0.0, -1.0],
+        },
+        0.5,
+        &r,
+    ) {
+        return Color { e: [1.0, 0.0, 0.0] };
+    }
     let unit_direction = Vec3::unit_vector(&r.dir);
     let a = 0.5 * (unit_direction.e[1] + 1.0);
     Vec3::add(
@@ -114,7 +130,7 @@ fn ray_color(r: &Ray) -> Color {
     )
 }
 fn main() {
-    let path = Path::new("output/book1/image2.ppm");
+    let path = Path::new("output/book1/image3.ppm");
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
     }
@@ -172,7 +188,7 @@ fn main() {
             );
             let ray_direction = Vec3::del(&pixel_center, &camera_center);
             let r = Ray {
-                _ori: camera_center.clone(),
+                ori: camera_center.clone(),
                 dir: ray_direction.clone(),
             };
             let pixel_color = ray_color(&r);
