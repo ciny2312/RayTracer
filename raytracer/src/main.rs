@@ -6,13 +6,13 @@ struct Vec3 {
 }
 impl Vec3 {
     fn _x(&self) -> f64 {
-        self.e[0];
+        self.e[0]
     }
     fn _y(&self) -> f64 {
-        self.e[1];
+        self.e[1]
     }
     fn _z(&self) -> f64 {
-        self.e[2];
+        self.e[2]
     }
     fn _fushu(&self) -> Self {
         Self {
@@ -20,10 +20,10 @@ impl Vec3 {
         }
     }
     fn sq_length(&self) -> f64 {
-        self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
+        self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
     }
     fn length(&self) -> f64 {
-        self.sq_length().sqrt();
+        self.sq_length().sqrt()
     }
     fn _self_add(&mut self, x: Self) {
         self.e[0] += x.e[0];
@@ -74,7 +74,7 @@ impl Vec3 {
     }
     fn unit_vector(x: &Self) -> Self {
         let y = x.length();
-        return Self::div(x, y);
+        Self::div(x, y)
     }
     fn output(x: &Self, file: &mut File) {
         let r: u32 = (x.e[0] * 255.999) as u32;
@@ -96,7 +96,7 @@ struct Ray {
 }
 impl Ray {
     fn _at(&self, t: f64) -> Point3 {
-        Vec3::add(&self._ori, &Vec3::mul(&self.dir, t));
+        Vec3::add(&self._ori, &Vec3::mul(&self.dir, t))
     }
     fn _clone(&self) -> Self {
         Self {
@@ -111,7 +111,7 @@ fn ray_color(r: &Ray) -> Color {
     Vec3::add(
         &Vec3::mul(&Color { e: [1.0, 1.0, 1.0] }, 1.0 - a),
         &Vec3::mul(&Color { e: [0.5, 0.7, 1.0] }, a),
-    );
+    )
 }
 fn main() {
     let path = Path::new("output/book1/image2.ppm");
