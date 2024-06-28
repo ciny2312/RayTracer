@@ -6,13 +6,13 @@ struct Vec3 {
 }
 impl Vec3 {
     fn _x(&self) -> f64 {
-        return self.e[0];
+        self.e[0];
     }
     fn _y(&self) -> f64 {
-        return self.e[1];
+        self.e[1];
     }
     fn _z(&self) -> f64 {
-        return self.e[2];
+        self.e[2];
     }
     fn _fushu(&self) -> Self {
         Self {
@@ -20,10 +20,10 @@ impl Vec3 {
         }
     }
     fn sq_length(&self) -> f64 {
-        return self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
+        self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
     }
     fn length(&self) -> f64 {
-        return self.sq_length().sqrt();
+        self.sq_length().sqrt();
     }
     fn _self_add(&mut self, x: Self) {
         self.e[0] += x.e[0];
@@ -96,7 +96,7 @@ struct Ray {
 }
 impl Ray {
     fn _at(&self, t: f64) -> Point3 {
-        return Vec3::add(&self._ori, &Vec3::mul(&self.dir, t));
+        Vec3::add(&self._ori, &Vec3::mul(&self.dir, t));
     }
     fn _clone(&self) -> Self {
         Self {
@@ -108,7 +108,7 @@ impl Ray {
 fn ray_color(r: &Ray) -> Color {
     let unit_direction = Vec3::unit_vector(&r.dir);
     let a = 0.5 * (unit_direction.e[1] + 1.0);
-    return Vec3::add(
+    Vec3::add(
         &Vec3::mul(&Color { e: [1.0, 1.0, 1.0] }, 1.0 - a),
         &Vec3::mul(&Color { e: [0.5, 0.7, 1.0] }, a),
     );
