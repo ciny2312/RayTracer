@@ -106,7 +106,7 @@ impl Ray {
     }
 }
 fn hit_the_ball(center: &Point3, radius: f64, r: &Ray) -> bool {
-    let oc = Vec3::del(&center, &r.ori);
+    let oc = Vec3::del(center, &r.ori);
     let a = Vec3::dot(&r.dir, &r.dir);
     let b = -2.0 * Vec3::dot(&r.dir, &oc);
     let c = Vec3::dot(&oc, &oc) - radius * radius;
@@ -118,7 +118,7 @@ fn ray_color(r: &Ray) -> Color {
             e: [0.0, 0.0, -1.0],
         },
         0.5,
-        &r,
+        r,
     ) {
         return Color { e: [1.0, 0.0, 0.0] };
     }
