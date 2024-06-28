@@ -1,20 +1,20 @@
 use std::fs::{self, File};
-use std::io::{self, Write};
+use std::io::Write;
 use std::path::Path;
 struct Vec3 {
     e: [f64; 3],
 }
 impl Vec3 {
-    fn x(&self) -> f64 {
+    fn _x(&self) -> f64 {
         return self.e[0];
     }
-    fn y(&self) -> f64 {
+    fn _y(&self) -> f64 {
         return self.e[1];
     }
-    fn z(&self) -> f64 {
+    fn _z(&self) -> f64 {
         return self.e[2];
     }
-    fn fushu(&self) -> Self {
+    fn _fushu(&self) -> Self {
         Self {
             e: [-self.e[0], -self.e[1], -self.e[2]],
         }
@@ -25,17 +25,17 @@ impl Vec3 {
     fn length(&self) -> f64 {
         return self.sq_length().sqrt();
     }
-    fn self_add(&mut self, x: Self) {
+    fn _self_add(&mut self, x: Self) {
         self.e[0] += x.e[0];
         self.e[1] += x.e[1];
         self.e[2] += x.e[2];
     }
-    fn self_mul(&mut self, x: f64) {
+    fn _self_mul(&mut self, x: f64) {
         self.e[0] *= x;
         self.e[1] *= x;
         self.e[2] *= x;
     }
-    fn self_div(&mut self, x: f64) {
+    fn _self_div(&mut self, x: f64) {
         self.e[0] /= x;
         self.e[1] /= x;
         self.e[2] /= x;
@@ -60,10 +60,10 @@ impl Vec3 {
             e: [x.e[0] / y, x.e[1] / y, x.e[2] / y],
         }
     }
-    fn dot(x: &Self, y: &Self) -> f64 {
+    fn _dot(x: &Self, y: &Self) -> f64 {
         x.e[0] * y.e[0] + x.e[1] * y.e[1] + x.e[2] * y.e[2]
     }
-    fn cross(x: &Self, y: &Self) -> Self {
+    fn _cross(x: &Self, y: &Self) -> Self {
         Self {
             e: [
                 x.e[1] * y.e[2] - x.e[2] * y.e[1],
@@ -92,16 +92,16 @@ type Color = Vec3;
 type Point3 = Vec3;
 struct Ray {
     dir: Vec3,
-    ori: Point3,
+    _ori: Point3,
 }
 impl Ray {
     fn _at(&self, t: f64) -> Point3 {
-        return Vec3::add(&self.ori, &Vec3::mul(&self.dir, t));
+        return Vec3::add(&self._ori, &Vec3::mul(&self.dir, t));
     }
     fn _clone(&self) -> Self {
         Self {
             dir: self.dir.clone(),
-            ori: self.ori.clone(),
+            _ori: self._ori.clone(),
         }
     }
 }
@@ -172,7 +172,7 @@ fn main() {
             );
             let ray_direction = Vec3::del(&pixel_center, &camera_center);
             let r = Ray {
-                ori: camera_center.clone(),
+                _ori: camera_center.clone(),
                 dir: ray_direction.clone(),
             };
             let pixel_color = ray_color(&r);
