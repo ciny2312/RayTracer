@@ -7,11 +7,11 @@ use std::sync::Arc;
 //mod HittableList;
 //mod sphere;
 
-const _PI: f64 = 3.1415926535897932385;
+//const PI: f64 = 3.1415926535897932385;
 const INF: f64 = 1e18;
-fn _degree_to_radians(degree: f64) -> f64 {
-    degree * _PI / 180.0
-}
+//fn _degree_to_radians(degree: f64) -> f64 {
+//    degree * PI / 180.0
+//}
 
 struct Vec3 {
     e: [f64; 3],
@@ -227,7 +227,7 @@ impl Hittable for Sphere {
         rec.t = root;
         rec.p = r.at(rec.t);
         let outward_normal = Vec3::div(&Vec3::del(&rec.p, &self.center), self.radius);
-        rec.set_face_normal(&r, outward_normal);
+        rec.set_face_normal(r, outward_normal);
         (rec, true)
     }
 }
