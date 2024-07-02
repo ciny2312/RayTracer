@@ -1,8 +1,10 @@
-use crate::rtweekend::random_double;
-use crate::rtweekend::random_double_01;
+use std::f64;
 use std::fs::File;
 use std::io::Write;
 use std::ops::{Add, Div, Mul, Neg, Sub};
+
+use crate::rtweekend::random_double;
+use crate::rtweekend::random_double_01;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
@@ -137,6 +139,14 @@ impl Vec3 {
             return on_unit_sphere;
         }
         -on_unit_sphere
+    }
+    pub fn near_zero(&self) -> bool {
+        let s = 1e-8;
+        (self.e[0].abs() < s) && (self.e[1].abs() < s) && (self.e[2].abs() < s)
+    }
+
+    pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+        v - n * Self::dot(&v, &n) * 2.0
     }
 }
 pub type Color = Vec3;

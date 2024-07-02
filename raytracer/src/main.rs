@@ -9,10 +9,14 @@ use std::sync::Arc;
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
+//use crate::hittable_list::material::Material;
+use crate::hittable_list::material::Lambertian;
+use crate::hittable_list::material::Metal;
+
+use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
-use crate::sphere::Sphere;
-//use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Vec3;
+use crate::sphere::Sphere;
 
 fn main() {
     let path = Path::new("output/book1/image6.ppm");
@@ -22,17 +26,47 @@ fn main() {
     let mut file = File::create(path).unwrap();
 
     let mut world = HittableList::new();
-    world.add(Arc::new(Sphere {
-        center: Point3 {
-            e: [0.0, 0.0, -1.0],
-        },
-        radius: 0.5,
-    }));
+
+    let material_ground = Arc::new(Lambertian {
+        albedo: Color { e: [0.8, 0.8, 0.0] },
+    });
+    let material_center = Arc::new(Lambertian {
+        albedo: Color { e: [0.1, 0.2, 0.5] },
+    });
+    let material_left = Arc::new(Metal {
+        albedo: Color { e: [0.8, 0.8, 0.8] },
+    });
+    let material_right = Arc::new(Metal {
+        albedo: Color { e: [0.8, 0.6, 0.2] },
+    });
+
     world.add(Arc::new(Sphere {
         center: Point3 {
             e: [0.0, -100.5, -1.0],
         },
         radius: 100.0,
+        mat: material_ground,
+    }));
+    world.add(Arc::new(Sphere {
+        center: Point3 {
+            e: [0.0, 0.0, -1.2],
+        },
+        radius: 0.5,
+        mat: material_center,
+    }));
+    world.add(Arc::new(Sphere {
+        center: Point3 {
+            e: [-1.0, 0.0, -1.0],
+        },
+        radius: 0.5,
+        mat: material_left,
+    }));
+    world.add(Arc::new(Sphere {
+        center: Point3 {
+            e: [1.0, 0.0, -1.0],
+        },
+        radius: 0.5,
+        mat: material_right,
     }));
 
     let mut cam = Camera {

@@ -1,11 +1,14 @@
 pub mod hittable;
+pub mod material;
+
 use crate::rtweekend::interval::Interval;
+use crate::rtweekend::ray::Ray;
+use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Vec3;
 use hittable::HitRecord;
 use hittable::Hittable;
 //use crate::rtweekend::vec3::Point3;
-//use crate::rtweekend::vec3::Color;
-use crate::rtweekend::ray::Ray;
+use crate::hittable_list::material::Lambertian;
 
 use std::sync::Arc;
 
@@ -14,12 +17,14 @@ pub struct HittableList {
 }
 impl Hittable for HittableList {
     fn hit(&self, r: &Ray, ray_t: &Interval) -> (HitRecord, bool) {
-        let v = Vec3::new();
         let mut rec = HitRecord {
-            p: v.clone(),
-            normal: v.clone(),
+            p: Vec3::new(),
+            normal: Vec3::new(),
             t: 0.0,
             front_face: false,
+            mat: Arc::new(Lambertian {
+                albedo: Color::new(),
+            }),
         };
         let mut hit_anything = false;
         let mut closest_so_far = ray_t.max;

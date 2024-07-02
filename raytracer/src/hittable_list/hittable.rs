@@ -1,14 +1,19 @@
+use std::sync::Arc;
+
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 //use crate::rtweekend::vec3::Color;
 use crate::rtweekend::interval::Interval;
+//use crate::hittable_list::material::Lambertian;
+use crate::hittable_list::material::Material;
 
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub mat: Arc<dyn Material>,
 }
 impl HitRecord {
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: Vec3) {

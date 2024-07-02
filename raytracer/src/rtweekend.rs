@@ -1,4 +1,5 @@
 use rand::Rng;
+
 pub mod color;
 pub mod interval;
 pub mod ray;

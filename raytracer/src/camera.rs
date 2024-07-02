@@ -37,15 +37,11 @@ impl Camera {
             },
         );
         if flag {
-            let direction = rec.normal + Vec3::random_unit_vector();
-            return Self::ray_color(
-                &Ray {
-                    ori: rec.p,
-                    dir: direction,
-                },
-                depth - 1,
-                world,
-            ) * 0.1;
+            let (attenuation, scattered, flag1) = rec.mat.scatter(r, &rec);
+            if flag1 {
+                return Self::ray_color(&scattered, depth - 1, world) * attenuation;
+            }
+            return Color::new();
         }
         let unit_direction = Vec3::unit_vector(r.dir);
         let a = 0.5 * (unit_direction.e[1] + 1.0);
