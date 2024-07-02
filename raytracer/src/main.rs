@@ -39,6 +39,7 @@ fn main() {
         aspect_ratio: 16.0 / 9.0,
         width: 400,
         samples_per_pixel: 100,
+        max_depth:50,
         height: 0,
         camera_center: Vec3::new(),
         pixel_loc: Vec3::new(),
