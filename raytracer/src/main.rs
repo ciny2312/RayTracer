@@ -35,9 +35,11 @@ fn main() {
     });
     let material_left = Arc::new(Metal {
         albedo: Color { e: [0.8, 0.8, 0.8] },
+        fuzz: 0.3,
     });
     let material_right = Arc::new(Metal {
         albedo: Color { e: [0.8, 0.6, 0.2] },
+        fuzz: 1.0,
     });
 
     world.add(Arc::new(Sphere {
