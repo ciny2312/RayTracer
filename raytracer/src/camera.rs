@@ -37,7 +37,7 @@ impl Camera {
             },
         );
         if flag {
-            let direction = Vec3::random_on_hemisphere(&rec.normal);
+            let direction = rec.normal + Vec3::random_unit_vector();
             return Self::ray_color(
                 &Ray {
                     ori: rec.p,
