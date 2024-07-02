@@ -29,7 +29,13 @@ impl Camera {
         if depth <= 0 {
             return Color::new();
         }
-        let (rec, flag) = world.hit(r, &Interval { min: 0.001, max: INF });
+        let (rec, flag) = world.hit(
+            r,
+            &Interval {
+                min: 0.001,
+                max: INF,
+            },
+        );
         if flag {
             let direction = Vec3::random_on_hemisphere(&rec.normal);
             return Self::ray_color(
