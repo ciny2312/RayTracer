@@ -1,8 +1,8 @@
 pub mod hittable;
-use hittable::HitRecord;
-use hittable::Hittable;
 use crate::rtweekend::interval::Interval;
 use crate::rtweekend::vec3::Vec3;
+use hittable::HitRecord;
+use hittable::Hittable;
 //use crate::rtweekend::vec3::Point3;
 //use crate::rtweekend::vec3::Color;
 use crate::rtweekend::ray::Ray;
@@ -13,7 +13,7 @@ pub struct HittableList {
     objects: Vec<Arc<dyn Hittable>>,
 }
 impl Hittable for HittableList {
-    fn hit(&self, r: &Ray, ray_t:&Interval) -> (HitRecord, bool) {
+    fn hit(&self, r: &Ray, ray_t: &Interval) -> (HitRecord, bool) {
         let v = Vec3::new();
         let mut rec = HitRecord {
             p: v.clone(),
@@ -25,7 +25,13 @@ impl Hittable for HittableList {
         let mut closest_so_far = ray_t.max;
 
         for object in &self.objects {
-            let (temp_rec, flag) = object.hit(r, &Interval{min:ray_t.min, max:closest_so_far});
+            let (temp_rec, flag) = object.hit(
+                r,
+                &Interval {
+                    min: ray_t.min,
+                    max: closest_so_far,
+                },
+            );
             if flag {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;

@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::Write;
-use std::ops::{Add,Sub,Mul,Div,Neg};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3 {
@@ -85,7 +85,7 @@ impl Vec3 {
     }
     pub fn unit_vector(x: Self) -> Self {
         let y = x.length();
-        x/y
+        x / y
     }
     pub fn _output(x: &Self, file: &mut File) {
         let r: u32 = (x.e[0] * 255.999) as u32;
@@ -98,10 +98,8 @@ impl Vec3 {
             e: [self.e[0], self.e[1], self.e[2]],
         }
     }
-    pub fn new()->Self{
-        Vec3{
-            e:[0.0,0.0,0.0]
-        }
+    pub fn new() -> Self {
+        Vec3 { e: [0.0, 0.0, 0.0] }
     }
 }
 pub type Color = Vec3;

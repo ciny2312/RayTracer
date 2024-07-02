@@ -1,7 +1,7 @@
-mod rtweekend;
-mod hittable_list;
-mod sphere;
 mod camera;
+mod hittable_list;
+mod rtweekend;
+mod sphere;
 
 use std::fs::{self, File};
 use std::path::Path;
@@ -9,8 +9,8 @@ use std::sync::Arc;
 
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
-use crate::sphere::Sphere;
 use crate::rtweekend::vec3::Point3;
+use crate::sphere::Sphere;
 //use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Vec3;
 
@@ -34,17 +34,17 @@ fn main() {
         },
         radius: 100.0,
     }));
-    
-    let mut cam=Camera{
-        aspect_ratio:16.0 / 9.0,
+
+    let mut cam = Camera {
+        aspect_ratio: 16.0 / 9.0,
         width: 400,
-        samples_per_pixel:100,
+        samples_per_pixel: 100,
         height: 0,
-        camera_center:Vec3::new(),
-        pixel_loc:Vec3::new(),
-        delta_u:Vec3::new(),
-        delta_v:Vec3::new(),
-        pixel_samples_scale:0.0,
+        camera_center: Vec3::new(),
+        pixel_loc: Vec3::new(),
+        delta_u: Vec3::new(),
+        delta_v: Vec3::new(),
+        pixel_samples_scale: 0.0,
     };
-    cam.render(&world,&mut file);
+    cam.render(&world, &mut file);
 }
