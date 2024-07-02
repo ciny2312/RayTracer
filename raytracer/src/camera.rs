@@ -16,7 +16,7 @@ pub struct Camera {
     pub aspect_ratio: f64, // Ratio of image width over height
     pub width: u32,        // Rendered image width in pixel count
     pub samples_per_pixel: u32,
-    pub max_depth:u32,
+    pub max_depth: u32,
     pub height: u32,           // Rendered image height
     pub camera_center: Point3, // Camera center
     pub pixel_loc: Point3,     // Location of pixel 0, 0
@@ -25,8 +25,8 @@ pub struct Camera {
     pub pixel_samples_scale: f64,
 }
 impl Camera {
-    fn ray_color(r: &Ray, depth:u32,world: &HittableList) -> Color {
-        if depth<=0{
+    fn ray_color(r: &Ray, depth: u32, world: &HittableList) -> Color {
+        if depth <= 0 {
             return Color::new();
         }
         let (rec, flag) = world.hit(r, &Interval { min: 0.0, max: INF });
@@ -37,7 +37,7 @@ impl Camera {
                     ori: rec.p,
                     dir: direction,
                 },
-                depth-1,
+                depth - 1,
                 world,
             ) * 0.5;
         }
@@ -98,7 +98,7 @@ impl Camera {
                 let mut pixel_color = Color::new();
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color = pixel_color + Self::ray_color(&r,self.max_depth, world);
+                    pixel_color = pixel_color + Self::ray_color(&r, self.max_depth, world);
                 }
                 write_color(&(pixel_color * self.pixel_samples_scale), file);
             }
