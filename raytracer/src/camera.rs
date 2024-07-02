@@ -25,7 +25,7 @@ pub struct Camera {
     pub pixel_samples_scale: f64,
 }
 impl Camera {
-    fn ray_color(r: &Ray, depth: u32, world: &HittableList) -> Color {
+    fn ray_color(r: &Ray, depth: i32, world: &HittableList) -> Color {
         if depth <= 0 {
             return Color::new();
         }
@@ -98,7 +98,7 @@ impl Camera {
                 let mut pixel_color = Color::new();
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color = pixel_color + Self::ray_color(&r, self.max_depth, world);
+                    pixel_color = pixel_color + Self::ray_color(&r, self.max_depth as i32, world);
                 }
                 write_color(&(pixel_color * self.pixel_samples_scale), file);
             }
