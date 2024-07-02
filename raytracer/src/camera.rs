@@ -45,7 +45,7 @@ impl Camera {
                 },
                 depth - 1,
                 world,
-            ) * 0.5;
+            ) * 0.1;
         }
         let unit_direction = Vec3::unit_vector(r.dir);
         let a = 0.5 * (unit_direction.e[1] + 1.0);
