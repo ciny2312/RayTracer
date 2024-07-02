@@ -1,3 +1,5 @@
+use crate::rtweekend::random_double;
+use crate::rtweekend::random_double_01;
 use std::fs::File;
 use std::io::Write;
 use std::ops::{Add, Div, Mul, Neg, Sub};
@@ -100,6 +102,41 @@ impl Vec3 {
     }
     pub fn new() -> Self {
         Vec3 { e: [0.0, 0.0, 0.0] }
+    }
+}
+impl Vec3 {
+    pub fn _random_01() -> Vec3 {
+        Vec3 {
+            e: [random_double_01(), random_double_01(), random_double_01()],
+        }
+    }
+    pub fn random(min: f64, max: f64) -> Vec3 {
+        Vec3 {
+            e: [
+                random_double(min, max),
+                random_double(min, max),
+                random_double(min, max),
+            ],
+        }
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        loop {
+            let p = Self::random(-1.0, 1.0);
+            if p.sq_length() < 1.0 {
+                return p;
+            }
+        }
+    }
+    pub fn random_unit_vector() -> Vec3 {
+        Self::unit_vector(Self::random_in_unit_sphere())
+    }
+    pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+        let on_unit_sphere = Self::random_unit_vector();
+        if Self::dot(&on_unit_sphere, &normal) > 0.0 {
+            return on_unit_sphere;
+        }
+        -on_unit_sphere
     }
 }
 pub type Color = Vec3;

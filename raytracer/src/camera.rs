@@ -27,7 +27,14 @@ impl Camera {
     fn ray_color(r: &Ray, world: &HittableList) -> Color {
         let (rec, flag) = world.hit(r, &Interval { min: 0.0, max: INF });
         if flag {
-            return (rec.normal + Color { e: [1.0, 1.0, 1.0] }) * 0.5;
+            let direction = Vec3::random_on_hemisphere(&rec.normal);
+            return Self::ray_color(
+                &Ray {
+                    ori: rec.p,
+                    dir: direction,
+                },
+                world,
+            ) * 0.5;
         }
         let unit_direction = Vec3::unit_vector(r.dir);
         let a = 0.5 * (unit_direction.e[1] + 1.0);
