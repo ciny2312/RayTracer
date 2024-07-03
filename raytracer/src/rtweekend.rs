@@ -5,7 +5,7 @@ pub mod interval;
 pub mod ray;
 pub mod vec3;
 pub const INF: f64 = 1e18;
-pub const PI: f64 = 3.1415926535897932385;
+pub const PI: f64 = 3.1415926536;
 
 pub fn degrees_to_radians(degree: f64) -> f64 {
     degree * PI / 180.0
