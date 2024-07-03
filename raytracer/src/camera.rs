@@ -20,13 +20,19 @@ pub struct Camera {
     pub max_depth: u32,
 
     pub vfov: f64,
+    pub lookfrom:Point3,
+    pub lookat:Point3,
+    pub vup:Vec3,
 
     pub height: u32,           // Rendered image height
+    pub pixel_samples_scale: f64,
     pub camera_center: Point3, // Camera center
     pub pixel_loc: Point3,     // Location of pixel 0, 0
     pub delta_u: Vec3,         // Offset to pixel to the right
     pub delta_v: Vec3,         // Offset to pixel below
-    pub pixel_samples_scale: f64,
+    pub u:Vec3,
+    pub v:Vec3,
+    pub w:Vec3,
 }
 impl Camera {
     fn ray_color(r: &Ray, depth: i32, world: &HittableList) -> Color {
@@ -60,29 +66,29 @@ impl Camera {
                 self.height
             }
         };
+
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
-        let focal_length: f64 = 1.0;
+
+        self.camera_center =self.lookfrom;
+        let focal_length: f64 = (self.lookfrom-self.lookat).length();
 
         let theta = degrees_to_radians(self.vfov);
         let h = (theta / 2.0).tan();
         let viewport_height = 2.0 * h * focal_length;
-
         let viewport_width = viewport_height * (self.width as f64 / self.height as f64);
-        self.camera_center = Point3 { e: [0.0, 0.0, 0.0] };
-        let viewport_u = Vec3 {
-            e: [viewport_width, 0.0, 0.0],
-        };
-        let viewport_v = Vec3 {
-            e: [0.0, -viewport_height, 0.0],
-        };
+        
+        self.w = Vec3::unit_vector(self.lookfrom - self.lookat);
+        self.u = Vec3::unit_vector(Vec3::cross(self.vup, self.w));
+        self.v = Vec3::cross(self.w, self.u);
+
+        let viewport_u = self.u*viewport_width;
+        let viewport_v = -self.v*viewport_height;
+
         self.delta_u = viewport_u / (self.width as f64);
         self.delta_v = viewport_v / (self.height as f64);
-        let viewport_upleft = self.camera_center
-            - Vec3 {
-                e: [0.0, 0.0, focal_length],
-            }
-            - viewport_u / 2.0
-            - viewport_v / 2.0;
+        
+        let viewport_upleft = self.camera_center-self.w*focal_length - viewport_u*0.5 - viewport_v*0.5;
+       
         self.pixel_loc = viewport_upleft + (self.delta_u + self.delta_v) * 0.5;
     }
     fn get_ray(&self, i: u32, j: u32) -> Ray {
