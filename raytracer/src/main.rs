@@ -87,7 +87,7 @@ fn main() {
         samples_per_pixel: 100,
         max_depth: 50,
 
-        vfov: 90.0,
+        vfov: 20.0,
         lookfrom: Point3 {
             e: [-2.0, 2.0, 1.0],
         },
