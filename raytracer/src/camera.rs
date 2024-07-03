@@ -4,6 +4,7 @@ use std::io::Write;
 use crate::hittable_list::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::rtweekend::color::write_color;
+use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::interval::Interval;
 use crate::rtweekend::random_double_01;
 use crate::rtweekend::ray::Ray;
@@ -17,6 +18,9 @@ pub struct Camera {
     pub width: u32,        // Rendered image width in pixel count
     pub samples_per_pixel: u32,
     pub max_depth: u32,
+
+    pub vfov: f64,
+
     pub height: u32,           // Rendered image height
     pub camera_center: Point3, // Camera center
     pub pixel_loc: Point3,     // Location of pixel 0, 0
@@ -58,7 +62,11 @@ impl Camera {
         };
         self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
         let focal_length: f64 = 1.0;
-        let viewport_height: f64 = 2.0;
+
+        let theta = degrees_to_radians(self.vfov);
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
+
         let viewport_width = viewport_height * (self.width as f64 / self.height as f64);
         self.camera_center = Point3 { e: [0.0, 0.0, 0.0] };
         let viewport_u = Vec3 {
