@@ -35,7 +35,7 @@ fn main() {
         albedo: Color { e: [0.1, 0.2, 0.5] },
     });
     let material_left = Arc::new(Dielectric {
-        refraction_index: 1.5,
+        refraction_index: 1.00 / 1.33,
     });
     let material_right = Arc::new(Metal {
         albedo: Color { e: [0.8, 0.6, 0.2] },
