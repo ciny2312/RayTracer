@@ -17,7 +17,6 @@ use crate::hittable_list::material::Lambertian;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
-use crate::rtweekend::PI;
 use crate::sphere::Sphere;
 
 fn main() {
@@ -36,7 +35,7 @@ fn main() {
         albedo: Color { e: [1.0, 0.0, 0.0] },
     });
 
-    let r = (PI / 4.0).cos();
+    let r = (std::f64::consts::PI / 4.0).cos();
 
     world.add(Arc::new(Sphere {
         center: Point3 { e: [-r, 0.0, -1.0] },
