@@ -96,6 +96,9 @@ fn main() {
         },
         vup: Vec3 { e: [0.0, 1.0, 0.0] },
 
+        defocus_angle: 10.0,
+        focus_dist: 3.4,
+
         height: 0,
         camera_center: Vec3::new(),
         pixel_loc: Vec3::new(),
@@ -105,6 +108,8 @@ fn main() {
         u: Vec3::new(),
         v: Vec3::new(),
         w: Vec3::new(),
+        defocus_disk_u: Vec3::new(),
+        defocus_disk_v: Vec3::new(),
     };
     cam.render(&world, &mut file);
 }
