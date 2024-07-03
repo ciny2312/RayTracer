@@ -10,9 +10,9 @@ use std::sync::Arc;
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
 //use crate::hittable_list::material::Material;
+use crate::hittable_list::material::Dielectric;
 use crate::hittable_list::material::Lambertian;
 use crate::hittable_list::material::Metal;
-use crate::hittable_list::material::Dielectric;
 
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
@@ -28,47 +28,57 @@ fn main() {
 
     let mut world = HittableList::new();
 
-    let material_ground= Arc::new(Lambertian {
-        albedo: Color { e: [0.8, 0.8, 0.0] }
+    let material_ground = Arc::new(Lambertian {
+        albedo: Color { e: [0.8, 0.8, 0.0] },
     });
-    let material_center=Arc::new(Lambertian {
-        albedo: Color { e: [0.1, 0.2, 0.5] }
+    let material_center = Arc::new(Lambertian {
+        albedo: Color { e: [0.1, 0.2, 0.5] },
     });
     let material_left = Arc::new(Dielectric {
-        refraction_index:1.5
+        refraction_index: 1.5,
     });
-    let material_bubble= Arc::new(Dielectric {
-        refraction_index:1.0/1.5
+    let material_bubble = Arc::new(Dielectric {
+        refraction_index: 1.0 / 1.5,
     });
     let material_right = Arc::new(Metal {
         albedo: Color { e: [0.8, 0.6, 0.2] },
-        fuzz:1.0,
+        fuzz: 1.0,
     });
 
     world.add(Arc::new(Sphere {
-        center: Point3 { e: [0.0, -100.5, -1.0] },
+        center: Point3 {
+            e: [0.0, -100.5, -1.0],
+        },
         radius: 100.0,
         mat: material_ground,
     }));
     world.add(Arc::new(Sphere {
-        center: Point3 { e: [ 0.0,    0.0, -1.2] },
+        center: Point3 {
+            e: [0.0, 0.0, -1.2],
+        },
         radius: 0.5,
         mat: material_center,
     }));
     world.add(Arc::new(Sphere {
-        center: Point3 { e: [-1.0,    0.0, -1.0] },
+        center: Point3 {
+            e: [-1.0, 0.0, -1.0],
+        },
         radius: 0.5,
-        mat:material_left
+        mat: material_left,
     }));
     world.add(Arc::new(Sphere {
-        center: Point3 { e: [-1.0,    0.0, -1.0] },
+        center: Point3 {
+            e: [-1.0, 0.0, -1.0],
+        },
         radius: 0.4,
-        mat: material_bubble
+        mat: material_bubble,
     }));
     world.add(Arc::new(Sphere {
-        center: Point3 { e: [1.0,    0.0, -1.0] },
+        center: Point3 {
+            e: [1.0, 0.0, -1.0],
+        },
         radius: 0.5,
-        mat: material_right
+        mat: material_right,
     }));
 
     let mut cam = Camera {
@@ -78,9 +88,13 @@ fn main() {
         max_depth: 50,
 
         vfov: 90.0,
-        lookfrom:Point3{e:[-2.0,2.0,1.0]},
-        lookat:Point3{e:[0.0,0.0,-1.0]},
-        vup:Vec3{e:[0.0,1.0,0.0]},
+        lookfrom: Point3 {
+            e: [-2.0, 2.0, 1.0],
+        },
+        lookat: Point3 {
+            e: [0.0, 0.0, -1.0],
+        },
+        vup: Vec3 { e: [0.0, 1.0, 0.0] },
 
         height: 0,
         camera_center: Vec3::new(),
@@ -88,9 +102,9 @@ fn main() {
         delta_u: Vec3::new(),
         delta_v: Vec3::new(),
         pixel_samples_scale: 0.0,
-        u:Vec3::new(),
-        v:Vec3::new(),
-        w:Vec3::new(),
+        u: Vec3::new(),
+        v: Vec3::new(),
+        w: Vec3::new(),
     };
     cam.render(&world, &mut file);
 }
