@@ -43,3 +43,22 @@ impl Material for Metal {
         (self.albedo, scattered, flag)
     }
 }
+pub struct Dielectric {
+    pub refraction_index: f64,
+}
+impl Material for Dielectric {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (Color, Ray, bool) {
+        let ri = if rec.front_face {
+            1.0 / self.refraction_index
+        } else {
+            self.refraction_index
+        };
+        let unit_direction = Vec3::unit_vector(r_in.dir);
+        let refracted = Vec3::refract(unit_direction, rec.normal, ri);
+        let scattered = Ray {
+            ori: rec.p,
+            dir: refracted,
+        };
+        (Color { e: [1.0, 1.0, 1.0] }, scattered, true)
+    }
+}

@@ -10,6 +10,7 @@ use std::sync::Arc;
 use crate::camera::Camera;
 use crate::hittable_list::HittableList;
 //use crate::hittable_list::material::Material;
+use crate::hittable_list::material::Dielectric;
 use crate::hittable_list::material::Lambertian;
 use crate::hittable_list::material::Metal;
 
@@ -33,9 +34,8 @@ fn main() {
     let material_center = Arc::new(Lambertian {
         albedo: Color { e: [0.1, 0.2, 0.5] },
     });
-    let material_left = Arc::new(Metal {
-        albedo: Color { e: [0.8, 0.8, 0.8] },
-        fuzz: 0.3,
+    let material_left = Arc::new(Dielectric {
+        refraction_index: 1.5,
     });
     let material_right = Arc::new(Metal {
         albedo: Color { e: [0.8, 0.6, 0.2] },
