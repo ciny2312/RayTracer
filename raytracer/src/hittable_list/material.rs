@@ -14,7 +14,7 @@ pub enum Material {
 impl Material {
     pub fn clone(&self) -> Self {
         match *self {
-            Material::Lambertian { albedo } => Material::Lambertian { albedo: albedo },
+            Material::Lambertian { albedo } => Material::Lambertian { albedo },
             Material::Metal { albedo, fuzz } => Material::Metal { albedo, fuzz },
             Material::Dielectric { refraction_index } => Material::Dielectric { refraction_index },
         }
