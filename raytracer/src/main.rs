@@ -1,103 +1,126 @@
 mod camera;
 mod hittable_list;
 mod rtweekend;
-mod sphere;
+//mod sphere;
 
 use std::fs::{self, File};
 use std::path::Path;
-use std::sync::Arc;
 
 use crate::camera::Camera;
+use crate::hittable_list::material::Material;
+use crate::hittable_list::HitObject;
 use crate::hittable_list::HittableList;
-//use crate::hittable_list::material::Material;
-use crate::hittable_list::material::Dielectric;
-use crate::hittable_list::material::Lambertian;
-use crate::hittable_list::material::Metal;
+//use crate::hittable_list::material::Dielectric;
+//use crate::hittable_list::material::Lambertian;
+//use crate::hittable_list::material::Metal;
 
+use crate::rtweekend::random_double_01;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
-use crate::sphere::Sphere;
+//use crate::sphere::Sphere;
 
 fn main() {
-    let path = Path::new("output/book1/image6.ppm");
+    let path = Path::new("output/book1/image7.ppm");
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
 
     let mut world = HittableList::new();
-
-    let material_ground = Arc::new(Lambertian {
-        albedo: Color { e: [0.8, 0.8, 0.0] },
-    });
-    let material_center = Arc::new(Lambertian {
-        albedo: Color { e: [0.1, 0.2, 0.5] },
-    });
-    let material_left = Arc::new(Dielectric {
-        refraction_index: 1.5,
-    });
-    let material_bubble = Arc::new(Dielectric {
-        refraction_index: 1.0 / 1.5,
-    });
-    let material_right = Arc::new(Metal {
-        albedo: Color { e: [0.8, 0.6, 0.2] },
-        fuzz: 1.0,
-    });
-
-    world.add(Arc::new(Sphere {
+    let material_ground = Material::Lambertian {
+        albedo: Color { e: [0.5, 0.5, 0.5] },
+    };
+    world.add(HitObject::Sphere {
         center: Point3 {
-            e: [0.0, -100.5, -1.0],
+            e: [0.0, -1000.0, -1.0],
         },
-        radius: 100.0,
+        radius: 1000.0,
         mat: material_ground,
-    }));
-    world.add(Arc::new(Sphere {
+    });
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat = random_double_01();
+            let center = Point3 {
+                e: [
+                    a as f64 + 0.9 * random_double_01(),
+                    0.2,
+                    b as f64 + 0.9 * random_double_01(),
+                ],
+            };
+            if (center - Point3 { e: [4.0, 0.2, 0.0] }).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    let albedo = Vec3::random_01() * Vec3::random_01();
+                    world.add(HitObject::Sphere {
+                        center,
+                        radius: 0.2,
+                        mat: Material::Lambertian { albedo },
+                    });
+                } else if choose_mat < 0.95 {
+                    let albedo = Vec3::random(0.5, 1.0);
+                    let fuzz = rtweekend::random_double(0.0, 0.5);
+                    world.add(HitObject::Sphere {
+                        center,
+                        radius: 0.2,
+                        mat: Material::Metal { albedo, fuzz },
+                    });
+                } else {
+                    world.add(HitObject::Sphere {
+                        center,
+                        radius: 0.2,
+                        mat: Material::Dielectric {
+                            refraction_index: 1.5,
+                        },
+                    });
+                }
+            }
+        }
+    }
+
+    let material1 = Material::Dielectric {
+        refraction_index: 1.5,
+    };
+    world.add(HitObject::Sphere {
+        center: Point3 { e: [0.0, 1.0, 0.0] },
+        radius: 1.0,
+        mat: material1,
+    });
+    let material2 = Material::Lambertian {
+        albedo: Color { e: [0.4, 0.2, 0.1] },
+    };
+    world.add(HitObject::Sphere {
         center: Point3 {
-            e: [0.0, 0.0, -1.2],
+            e: [-4.0, 1.0, 0.0],
         },
-        radius: 0.5,
-        mat: material_center,
-    }));
-    world.add(Arc::new(Sphere {
-        center: Point3 {
-            e: [-1.0, 0.0, -1.0],
-        },
-        radius: 0.5,
-        mat: material_left,
-    }));
-    world.add(Arc::new(Sphere {
-        center: Point3 {
-            e: [-1.0, 0.0, -1.0],
-        },
-        radius: 0.4,
-        mat: material_bubble,
-    }));
-    world.add(Arc::new(Sphere {
-        center: Point3 {
-            e: [1.0, 0.0, -1.0],
-        },
-        radius: 0.5,
-        mat: material_right,
-    }));
+        radius: 1.0,
+        mat: material2,
+    });
+    let material3 = Material::Metal {
+        albedo: Color { e: [0.7, 0.6, 0.5] },
+        fuzz: 0.0,
+    };
+    world.add(HitObject::Sphere {
+        center: Point3 { e: [4.0, 1.0, 0.0] },
+        radius: 1.0,
+        mat: material3,
+    });
 
     let mut cam = Camera {
         aspect_ratio: 16.0 / 9.0,
-        width: 400,
-        samples_per_pixel: 100,
+        width: 1200,
+        samples_per_pixel: 500,
         max_depth: 50,
 
         vfov: 20.0,
         lookfrom: Point3 {
-            e: [-2.0, 2.0, 1.0],
+            e: [13.0, 2.0, 3.0],
         },
-        lookat: Point3 {
-            e: [0.0, 0.0, -1.0],
-        },
+        lookat: Point3 { e: [0.0, 0.0, 0.0] },
         vup: Vec3 { e: [0.0, 1.0, 0.0] },
 
-        defocus_angle: 10.0,
-        focus_dist: 3.4,
+        defocus_angle: 0.6,
+        focus_dist: 10.0,
 
         height: 0,
         camera_center: Vec3::new(),
@@ -111,5 +134,5 @@ fn main() {
         defocus_disk_u: Vec3::new(),
         defocus_disk_v: Vec3::new(),
     };
-    cam.render(&world, &mut file);
+    cam.render(world, &mut file, 8);
 }

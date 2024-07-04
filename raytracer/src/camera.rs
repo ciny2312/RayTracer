@@ -1,7 +1,13 @@
+use indicatif::ProgressBar;
 use std::fs::File;
 use std::io::Write;
 
-use crate::hittable_list::hittable::Hittable;
+use std::sync::{Arc, Mutex};
+use std::thread;
+//use std::sync::mpsc::channel;
+//use std::time::Instant;
+
+//use crate::hittable_list::hittable::Hittable;
 use crate::hittable_list::HittableList;
 use crate::rtweekend::color::write_color;
 use crate::rtweekend::degrees_to_radians;
@@ -40,6 +46,34 @@ pub struct Camera {
     pub defocus_disk_v: Vec3,
 }
 impl Camera {
+    fn clone(&self) -> Camera {
+        Camera {
+            aspect_ratio: self.aspect_ratio, // Ratio of image width over height
+            width: self.width,               // Rendered image width in pixel count
+            samples_per_pixel: self.samples_per_pixel,
+            max_depth: self.max_depth,
+
+            vfov: self.vfov,
+            lookfrom: self.lookfrom,
+            lookat: self.lookat,
+            vup: self.vup,
+
+            defocus_angle: self.defocus_angle,
+            focus_dist: self.focus_dist,
+
+            height: self.height,
+            pixel_samples_scale: self.pixel_samples_scale,
+            camera_center: self.camera_center,
+            pixel_loc: self.pixel_loc,
+            delta_u: self.delta_u,
+            delta_v: self.delta_v,
+            u: self.u,
+            v: self.v,
+            w: self.w,
+            defocus_disk_u: self.defocus_disk_u,
+            defocus_disk_v: self.defocus_disk_v,
+        }
+    }
     fn ray_color(r: &Ray, depth: i32, world: &HittableList) -> Color {
         if depth <= 0 {
             return Color::new();
@@ -125,8 +159,10 @@ impl Camera {
             e: [random_double_01() - 0.5, random_double_01() - 0.5, 0.0],
         }
     }
-    pub fn render(&mut self, world: &HittableList, file: &mut File) {
+    /*    pub fn render(&mut self, world: &HittableList, file: &mut File) {
         self.initialize();
+        let total_pixels=self.height * self.width;
+        let progress =ProgressBar::new(total_pixels as u64);
         writeln!(file, "P3\n{} {}\n255", self.width, self.height).unwrap();
         for j in 0..self.height {
             for i in 0..self.width {
@@ -136,7 +172,68 @@ impl Camera {
                     pixel_color = pixel_color + Self::ray_color(&r, self.max_depth as i32, world);
                 }
                 write_color(&(pixel_color * self.pixel_samples_scale), file);
+                progress.inc(1);
             }
         }
+        progress.finish();
+    }*/
+    fn render_block(
+        &self,
+        world: &HittableList,
+        start_y: u32,
+        end_y: u32,
+        result: Arc<Mutex<Vec<Color>>>,
+    ) {
+        for j in start_y..end_y {
+            for i in 0..self.width {
+                let mut pixel_color = Color::new();
+                for _sample in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i, j);
+                    pixel_color = pixel_color + Self::ray_color(&r, self.max_depth as i32, world);
+                }
+                let mut buffer = result.lock().unwrap();
+                buffer[(j * self.width + i) as usize] = pixel_color * self.pixel_samples_scale;
+            }
+        }
+    }
+    pub fn render(&mut self, world: HittableList, file: &mut File, num_threads: u32) {
+        self.initialize();
+        let total_pixels = self.height * self.width;
+        let progress = ProgressBar::new(total_pixels as u64);
+
+        let block_height = self.height / num_threads;
+        let result = Arc::new(Mutex::new(vec![Color::new(); total_pixels as usize]));
+        let handles: Vec<_> = (0..num_threads)
+            .map(|i| {
+                let world = world.clone();
+                let start_y = i * block_height;
+                let end_y = if i == num_threads - 1 {
+                    self.height
+                } else {
+                    (i + 1) * block_height
+                };
+
+                let result = Arc::clone(&result);
+
+                let cam = self.clone();
+                thread::spawn(move || {
+                    cam.render_block(&world, start_y, end_y, result);
+                })
+            })
+            .collect();
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        writeln!(file, "P3\n{} {}\n255", self.width, self.height).unwrap();
+
+        let buffer = result.lock().unwrap();
+        for i in 0..total_pixels {
+            write_color(&buffer[i as usize], file);
+            progress.inc(1);
+        }
+
+        progress.finish();
     }
 }
