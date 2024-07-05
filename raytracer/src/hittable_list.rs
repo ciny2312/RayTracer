@@ -26,9 +26,9 @@ impl HitObject {
         match *self {
             HitObject::Sphere {
                 center_st,
-                radius:_,
-                mat:_,
-                is_moving:_,
+                radius: _,
+                mat: _,
+                is_moving: _,
                 center_vec,
             } => center_st + center_vec * time,
         }
@@ -40,7 +40,7 @@ impl HitObject {
                 radius,
                 mat,
                 is_moving,
-                center_vec:_,
+                center_vec: _,
             } => {
                 let v = Vec3 { e: [0.0, 0.0, 0.0] };
                 let mut rec = HitRecord {
