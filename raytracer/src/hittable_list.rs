@@ -14,18 +14,33 @@ use crate::hittable_list::material::Material;
 #[derive(Clone)]
 pub enum HitObject {
     Sphere {
-        center: Point3,
+        center_st: Point3,
         radius: f64,
         mat: Material,
+        is_moving: bool,
+        center_vec: Vec3,
     },
 }
 impl HitObject {
+    fn cur_center(&self, time: f64) -> Point3 {
+        match *self {
+            HitObject::Sphere {
+                center_st,
+                radius,
+                mat,
+                is_moving,
+                center_vec,
+            } => center_st + center_vec * time,
+        }
+    }
     fn hit(&self, r: &Ray, ray_t: &Interval) -> (HitRecord, bool) {
         match *self {
             HitObject::Sphere {
-                center,
+                center_st,
                 radius,
                 mat,
+                is_moving,
+                center_vec,
             } => {
                 let v = Vec3 { e: [0.0, 0.0, 0.0] };
                 let mut rec = HitRecord {
@@ -36,6 +51,11 @@ impl HitObject {
                     mat: Material::Lambertian {
                         albedo: Color::new(),
                     },
+                };
+                let center = if is_moving {
+                    self.cur_center(r.tm)
+                } else {
+                    center_st
                 };
                 let oc = center - r.ori;
                 let a = r.dir.sq_length();

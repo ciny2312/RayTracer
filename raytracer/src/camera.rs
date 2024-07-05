@@ -147,6 +147,7 @@ impl Camera {
         Ray {
             ori: ray_origin,
             dir: pixel_sample - ray_origin,
+            tm: random_double_01(),
         }
     }
     fn defocus_disk_sample(&self) -> Point3 {

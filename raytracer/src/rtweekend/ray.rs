@@ -4,6 +4,7 @@ use crate::rtweekend::vec3::Vec3;
 pub struct Ray {
     pub dir: Vec3,
     pub ori: Point3,
+    pub tm: f64,
 }
 impl Ray {
     pub fn at(&self, t: f64) -> Point3 {
@@ -13,6 +14,7 @@ impl Ray {
         Self {
             dir: self.dir,
             ori: self.ori,
+            tm: self.tm,
         }
     }
 }

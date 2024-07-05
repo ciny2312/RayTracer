@@ -14,6 +14,7 @@ use crate::hittable_list::HittableList;
 //use crate::hittable_list::material::Lambertian;
 //use crate::hittable_list::material::Metal;
 
+use crate::rtweekend::random_double;
 use crate::rtweekend::random_double_01;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
@@ -32,11 +33,13 @@ fn main() {
         albedo: Color { e: [0.5, 0.5, 0.5] },
     };
     world.add(HitObject::Sphere {
-        center: Point3 {
+        center_st: Point3 {
             e: [0.0, -1000.0, -1.0],
         },
         radius: 1000.0,
         mat: material_ground,
+        is_moving: false,
+        center_vec: Vec3::new(),
     });
 
     for a in -11..11 {
@@ -52,26 +55,35 @@ fn main() {
             if (center - Point3 { e: [4.0, 0.2, 0.0] }).length() > 0.9 {
                 if choose_mat < 0.8 {
                     let albedo = Vec3::random_01() * Vec3::random_01();
+
                     world.add(HitObject::Sphere {
-                        center,
+                        center_st: center,
                         radius: 0.2,
                         mat: Material::Lambertian { albedo },
+                        is_moving: true,
+                        center_vec: Vec3 {
+                            e: [0.0, random_double(0.0, 0.5), 0.0],
+                        },
                     });
                 } else if choose_mat < 0.95 {
                     let albedo = Vec3::random(0.5, 1.0);
                     let fuzz = rtweekend::random_double(0.0, 0.5);
                     world.add(HitObject::Sphere {
-                        center,
+                        center_st: center,
                         radius: 0.2,
                         mat: Material::Metal { albedo, fuzz },
+                        is_moving: false,
+                        center_vec: Vec3::new(),
                     });
                 } else {
                     world.add(HitObject::Sphere {
-                        center,
+                        center_st: center,
                         radius: 0.2,
                         mat: Material::Dielectric {
                             refraction_index: 1.5,
                         },
+                        is_moving: false,
+                        center_vec: Vec3::new(),
                     });
                 }
             }
@@ -82,34 +94,40 @@ fn main() {
         refraction_index: 1.5,
     };
     world.add(HitObject::Sphere {
-        center: Point3 { e: [0.0, 1.0, 0.0] },
+        center_st: Point3 { e: [0.0, 1.0, 0.0] },
         radius: 1.0,
         mat: material1,
+        is_moving: false,
+        center_vec: Vec3::new(),
     });
     let material2 = Material::Lambertian {
         albedo: Color { e: [0.4, 0.2, 0.1] },
     };
     world.add(HitObject::Sphere {
-        center: Point3 {
+        center_st: Point3 {
             e: [-4.0, 1.0, 0.0],
         },
         radius: 1.0,
         mat: material2,
+        is_moving: false,
+        center_vec: Vec3::new(),
     });
     let material3 = Material::Metal {
         albedo: Color { e: [0.7, 0.6, 0.5] },
         fuzz: 0.0,
     };
     world.add(HitObject::Sphere {
-        center: Point3 { e: [4.0, 1.0, 0.0] },
+        center_st: Point3 { e: [4.0, 1.0, 0.0] },
         radius: 1.0,
         mat: material3,
+        is_moving: false,
+        center_vec: Vec3::new(),
     });
 
     let mut cam = Camera {
         aspect_ratio: 16.0 / 9.0,
-        width: 1200,
-        samples_per_pixel: 500,
+        width: 400,
+        samples_per_pixel: 100,
         max_depth: 50,
 
         vfov: 20.0,
@@ -134,5 +152,5 @@ fn main() {
         defocus_disk_u: Vec3::new(),
         defocus_disk_v: Vec3::new(),
     };
-    cam.render(world, &mut file, 8);
+    cam.render(world, &mut file, 16);
 }

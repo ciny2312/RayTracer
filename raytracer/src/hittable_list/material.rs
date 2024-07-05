@@ -26,14 +26,12 @@ impl Material {
                 if scatter_direction.near_zero() {
                     scatter_direction = rec.normal;
                 }
-                (
-                    albedo,
-                    Ray {
-                        ori: rec.p,
-                        dir: scatter_direction,
-                    },
-                    true,
-                )
+                let scattered = Ray {
+                    ori: rec.p,
+                    dir: scatter_direction,
+                    tm: r_in.tm,
+                };
+                (albedo, scattered, true)
             }
             Material::Metal { albedo, fuzz } => {
                 let mut reflected = Vec3::reflect(r_in.dir, rec.normal);
@@ -41,6 +39,7 @@ impl Material {
                 let scattered = Ray {
                     ori: rec.p,
                     dir: reflected,
+                    tm: r_in.tm,
                 };
                 let flag = Vec3::dot(&scattered.dir, &rec.normal) > 0.0;
                 (albedo, scattered, flag)
@@ -65,6 +64,7 @@ impl Material {
                 let scattered = Ray {
                     ori: rec.p,
                     dir: direction,
+                    tm: r_in.tm,
                 };
                 (Color { e: [1.0, 1.0, 1.0] }, scattered, true)
             }
