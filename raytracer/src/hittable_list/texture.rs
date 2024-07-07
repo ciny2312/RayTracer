@@ -54,7 +54,7 @@ impl Texture {
                 }
             }
             Texture::Noisetexture { noise, scale } => {
-                Color { e: [1.0, 1.0, 1.0] } * noise.noise(&((*p) * (*scale)))
+                Color { e: [1.0, 1.0, 1.0] } * 0.5 * (1.0 + noise.noise(&((*p) * (*scale))))
             }
         }
     }
