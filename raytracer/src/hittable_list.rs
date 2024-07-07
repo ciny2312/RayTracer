@@ -126,6 +126,7 @@ impl HitObject {
                 rec.t = root;
                 rec.p = r.at(rec.t);
                 let outward_normal = (rec.p - center) / *radius;
+                (rec.u, rec.v) = hittable::get_sphere_uv(&outward_normal);
                 rec.set_face_normal(r, outward_normal);
                 rec.mat = mat.clone();
                 (rec, true)

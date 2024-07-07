@@ -1,6 +1,7 @@
 mod aabb;
 mod camera;
 mod hittable_list;
+mod rtw_image;
 mod rtweekend;
 
 use std::fs::{self, File};
@@ -171,7 +172,7 @@ fn bouncing_spheres(file: &mut File) {
     };
     cam.render(bvh_root, file, 16);
 }
-fn checkered_spheres(file: &mut File) {
+fn _checkered_spheres(file: &mut File) {
     let mut world = new_hittable_list();
     let checker = CheckerTexture {
         inv_scale: 1.0 / 0.32,
@@ -233,6 +234,44 @@ fn checkered_spheres(file: &mut File) {
     };
     cam.render(world, file, 16);
 }
+fn my_paint(file: &mut File) {
+    let path = "raytracer/src/paint1.jpg";
+    let texture = rtw_image::load_image_to_float_array(path);
+    let surface = Material::Lambertian {
+        tex: Box::new(texture),
+    };
+    let globe = build_sphere(Point3::new(), Vec3::new(), 2.0, surface, false);
+
+    let mut cam = Camera {
+        aspect_ratio: 16.0 / 9.0,
+        width: 400,
+        samples_per_pixel: 100,
+        max_depth: 50,
+
+        vfov: 20.0,
+        lookfrom: Point3 {
+            e: [0.0, 0.0, 12.0],
+        },
+        lookat: Point3 { e: [0.0, 0.0, 0.0] },
+        vup: Vec3 { e: [0.0, 1.0, 0.0] },
+
+        defocus_angle: 0.0,
+        focus_dist: 10.0,
+
+        height: 0,
+        camera_center: Vec3::new(),
+        pixel_loc: Vec3::new(),
+        delta_u: Vec3::new(),
+        delta_v: Vec3::new(),
+        pixel_samples_scale: 0.0,
+        u: Vec3::new(),
+        v: Vec3::new(),
+        w: Vec3::new(),
+        defocus_disk_u: Vec3::new(),
+        defocus_disk_v: Vec3::new(),
+    };
+    cam.render(globe, file, 16);
+}
 fn main() {
     let path = Path::new("output/book1/image7.ppm");
     if let Some(parent) = path.parent() {
@@ -245,5 +284,5 @@ fn main() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
-    checkered_spheres(&mut file);
+    my_paint(&mut file);
 }

@@ -135,3 +135,11 @@ pub fn build_sphere(
         bbox,
     }
 }
+pub fn get_sphere_uv(p: &Point3) -> (f64, f64) {
+    let theta = (-p.e[1]).acos();
+    let phi = (-p.e[2]).atan2(p.e[0]) + std::f64::consts::PI;
+    (
+        phi / (2.0 * std::f64::consts::PI),
+        theta / std::f64::consts::PI,
+    )
+}
