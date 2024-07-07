@@ -25,19 +25,23 @@ impl Perlin {
         }
     }
     pub fn noise(&self, p: &Point3) -> f64 {
-        let u = p.e[0] - p.e[0].floor();
-        let v = p.e[1] - p.e[1].floor();
-        let w = p.e[2] - p.e[2].floor();
+        let mut u = p.e[0] - p.e[0].floor();
+        let mut v = p.e[1] - p.e[1].floor();
+        let mut w = p.e[2] - p.e[2].floor();
+
+        u = u * u * (3.0 - 2.0 * u);
+        v = v * v * (3.0 - 2.0 * v);
+        w = w * w * (3.0 - 2.0 * w);
 
         let i = p.e[0].floor() as i32;
         let j = p.e[1].floor() as i32;
         let k = p.e[2].floor() as i32;
         let mut c: [[[f64; 3]; 3]; 3] = [[[0.0, 0.0, 0.0]; 3]; 3];
 
-        for di in 0..2 {
-            for dj in 0..2 {
-                for dk in 0..2 {
-                    c[di][dj][dk] = self.randfloat[(self.x[(i as usize + di) & 255]
+        for (di, itemi) in c.iter_mut().enumerate().take(2) {
+            for (dj, itemj) in itemi.iter_mut().enumerate().take(2) {
+                for (dk, itemk) in itemj.iter_mut().enumerate().take(2) {
+                    *itemk = self.randfloat[(self.x[(i as usize + di) & 255]
                         ^ self.y[(j as usize + dj) & 255]
                         ^ self.z[(k as usize + dk) & 255])
                         as usize];
@@ -48,13 +52,13 @@ impl Perlin {
     }
     fn trilinear_interp(c: &[[[f64; 3]; 3]; 3], u: f64, v: f64, w: f64) -> f64 {
         let mut accum = 0.0;
-        for i in 0..2 {
-            for j in 0..2 {
-                for k in 0..2 {
+        for (i, itemi) in c.iter().enumerate().take(2) {
+            for (j, itemj) in itemi.iter().enumerate().take(2) {
+                for (k, itemk) in itemj.iter().enumerate().take(2) {
                     accum += (i as f64 * u + (1 - i) as f64 * (1.0 - u))
                         * (j as f64 * v + (1 - j) as f64 * (1.0 - v))
                         * (k as f64 * w + (1 - k) as f64 * (1.0 - w))
-                        * c[i][j][k];
+                        * itemk;
                 }
             }
         }
