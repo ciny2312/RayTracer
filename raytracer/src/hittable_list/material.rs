@@ -4,24 +4,31 @@ use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Vec3;
 
 use crate::hittable_list::hittable::HitRecord;
+use crate::hittable_list::texture::Texture;
+//use crate::hittable_list::texture::Texture::SolidColor;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug)]
 pub enum Material {
-    Lambertian { albedo: Color },
+    Lambertian { tex: Box<Texture> },
     Metal { albedo: Color, fuzz: f64 },
     Dielectric { refraction_index: f64 },
 }
 impl Material {
-    pub fn clone(&self) -> Self {
-        match *self {
-            Material::Lambertian { albedo } => Material::Lambertian { albedo },
-            Material::Metal { albedo, fuzz } => Material::Metal { albedo, fuzz },
-            Material::Dielectric { refraction_index } => Material::Dielectric { refraction_index },
+    pub fn clone(&self) -> Material {
+        match self {
+            Material::Lambertian { tex } => Material::Lambertian { tex: tex.clone() },
+            Material::Metal { albedo, fuzz } => Material::Metal {
+                albedo: *albedo,
+                fuzz: *fuzz,
+            },
+            Material::Dielectric { refraction_index } => Material::Dielectric {
+                refraction_index: *refraction_index,
+            },
         }
     }
     pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (Color, Ray, bool) {
-        match *self {
-            Material::Lambertian { albedo } => {
+        match self {
+            Material::Lambertian { tex } => {
                 let mut scatter_direction = rec.normal + Vec3::random_unit_vector();
                 if scatter_direction.near_zero() {
                     scatter_direction = rec.normal;
@@ -31,24 +38,24 @@ impl Material {
                     dir: scatter_direction,
                     tm: r_in.tm,
                 };
-                (albedo, scattered, true)
+                (tex.value(rec.u, rec.v, &rec.p), scattered, true)
             }
             Material::Metal { albedo, fuzz } => {
                 let mut reflected = Vec3::reflect(r_in.dir, rec.normal);
-                reflected = Vec3::unit_vector(reflected) + Vec3::random_unit_vector() * fuzz;
+                reflected = Vec3::unit_vector(reflected) + Vec3::random_unit_vector() * (*fuzz);
                 let scattered = Ray {
                     ori: rec.p,
                     dir: reflected,
                     tm: r_in.tm,
                 };
                 let flag = Vec3::dot(&scattered.dir, &rec.normal) > 0.0;
-                (albedo, scattered, flag)
+                (*albedo, scattered, flag)
             }
             Material::Dielectric { refraction_index } => {
                 let ri = if rec.front_face {
-                    1.0 / refraction_index
+                    1.0 / (*refraction_index)
                 } else {
-                    refraction_index
+                    *refraction_index
                 };
                 let unit_direction = Vec3::unit_vector(r_in.dir);
 

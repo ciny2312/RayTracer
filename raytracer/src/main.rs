@@ -1,18 +1,23 @@
+mod aabb;
 mod camera;
 mod hittable_list;
 mod rtweekend;
-//mod sphere;
 
 use std::fs::{self, File};
 use std::path::Path;
 
 use crate::camera::Camera;
+//use crate::hittable_list::HitObject;
+use crate::hittable_list::hittable::build_sphere;
+use crate::hittable_list::hittable::bvh_node;
+use crate::hittable_list::hittable::new_hittable_list;
 use crate::hittable_list::material::Material;
-use crate::hittable_list::HitObject;
-use crate::hittable_list::HittableList;
+//use crate::hittable_list::HittableList;
 //use crate::hittable_list::material::Dielectric;
 //use crate::hittable_list::material::Lambertian;
 //use crate::hittable_list::material::Metal;
+use crate::hittable_list::texture::Texture::CheckerTexture;
+use crate::hittable_list::texture::Texture::SolidColor;
 
 use crate::rtweekend::random_double;
 use crate::rtweekend::random_double_01;
@@ -28,19 +33,28 @@ fn main() {
     }
     let mut file = File::create(path).unwrap();
 
-    let mut world = HittableList::new();
-    let material_ground = Material::Lambertian {
-        albedo: Color { e: [0.5, 0.5, 0.5] },
+    let mut world = new_hittable_list();
+    let checker = CheckerTexture {
+        inv_scale: 1.0 / 0.32,
+        even: Box::new(SolidColor {
+            albedo: Color { e: [0.2, 0.3, 0.1] },
+        }),
+        odd: Box::new(SolidColor {
+            albedo: Color { e: [0.9, 0.9, 0.9] },
+        }),
     };
-    world.add(HitObject::Sphere {
-        center_st: Point3 {
+    let material_ground = Material::Lambertian {
+        tex: Box::new(checker),
+    };
+    world.add(build_sphere(
+        Point3 {
             e: [0.0, -1000.0, -1.0],
         },
-        radius: 1000.0,
-        mat: material_ground,
-        is_moving: false,
-        center_vec: Vec3::new(),
-    });
+        Vec3::new(),
+        1000.0,
+        material_ground,
+        false,
+    ));
 
     for a in -11..11 {
         for b in -11..11 {
@@ -56,74 +70,84 @@ fn main() {
                 if choose_mat < 0.8 {
                     let albedo = Vec3::random_01() * Vec3::random_01();
 
-                    world.add(HitObject::Sphere {
-                        center_st: center,
-                        radius: 0.2,
-                        mat: Material::Lambertian { albedo },
-                        is_moving: true,
-                        center_vec: Vec3 {
+                    world.add(build_sphere(
+                        center,
+                        Vec3 {
                             e: [0.0, random_double(0.0, 0.5), 0.0],
                         },
-                    });
+                        0.2,
+                        Material::Lambertian {
+                            tex: Box::new(SolidColor { albedo }),
+                        },
+                        true,
+                    ));
+                //    dbg!("ball1");
                 } else if choose_mat < 0.95 {
                     let albedo = Vec3::random(0.5, 1.0);
                     let fuzz = rtweekend::random_double(0.0, 0.5);
-                    world.add(HitObject::Sphere {
-                        center_st: center,
-                        radius: 0.2,
-                        mat: Material::Metal { albedo, fuzz },
-                        is_moving: false,
-                        center_vec: Vec3::new(),
-                    });
+                    world.add(build_sphere(
+                        center,
+                        Vec3::new(),
+                        0.2,
+                        Material::Metal { albedo, fuzz },
+                        false,
+                    ));
+                //    dbg!("ball2");
                 } else {
-                    world.add(HitObject::Sphere {
-                        center_st: center,
-                        radius: 0.2,
-                        mat: Material::Dielectric {
+                    world.add(build_sphere(
+                        center,
+                        Vec3::new(),
+                        0.2,
+                        Material::Dielectric {
                             refraction_index: 1.5,
                         },
-                        is_moving: false,
-                        center_vec: Vec3::new(),
-                    });
+                        false,
+                    ));
+                    //    dbg!("ball3");
                 }
             }
         }
     }
-
     let material1 = Material::Dielectric {
         refraction_index: 1.5,
     };
-    world.add(HitObject::Sphere {
-        center_st: Point3 { e: [0.0, 1.0, 0.0] },
-        radius: 1.0,
-        mat: material1,
-        is_moving: false,
-        center_vec: Vec3::new(),
-    });
+    world.add(build_sphere(
+        Point3 { e: [0.0, 1.0, 0.0] },
+        Vec3::new(),
+        1.0,
+        material1,
+        false,
+    ));
     let material2 = Material::Lambertian {
-        albedo: Color { e: [0.4, 0.2, 0.1] },
+        tex: Box::new(SolidColor {
+            albedo: Color { e: [0.4, 0.2, 0.1] },
+        }),
     };
-    world.add(HitObject::Sphere {
-        center_st: Point3 {
+    world.add(build_sphere(
+        Point3 {
             e: [-4.0, 1.0, 0.0],
         },
-        radius: 1.0,
-        mat: material2,
-        is_moving: false,
-        center_vec: Vec3::new(),
-    });
+        Vec3::new(),
+        1.0,
+        material2,
+        false,
+    ));
     let material3 = Material::Metal {
         albedo: Color { e: [0.7, 0.6, 0.5] },
         fuzz: 0.0,
     };
-    world.add(HitObject::Sphere {
-        center_st: Point3 { e: [4.0, 1.0, 0.0] },
-        radius: 1.0,
-        mat: material3,
-        is_moving: false,
-        center_vec: Vec3::new(),
-    });
+    world.add(build_sphere(
+        Point3 { e: [4.0, 1.0, 0.0] },
+        Vec3::new(),
+        1.0,
+        material3,
+        false,
+    ));
 
+    let mut objects = world.get_objects();
+    let size = objects.len();
+    let bvh_root = bvh_node(&mut objects, 0, size);
+    //    dbg!(bvh_root.clone());
     let mut cam = Camera {
         aspect_ratio: 16.0 / 9.0,
         width: 400,
@@ -152,5 +176,5 @@ fn main() {
         defocus_disk_u: Vec3::new(),
         defocus_disk_v: Vec3::new(),
     };
-    cam.render(world, &mut file, 16);
+    cam.render(bvh_root, &mut file, 16);
 }

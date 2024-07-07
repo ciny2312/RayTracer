@@ -97,7 +97,7 @@ impl Vec3 {
         let b: u32 = (x.e[2] * 255.999) as u32;
         writeln!(file, "{} {} {}", r, g, b).unwrap();
     }
-    pub fn clone(&self) -> Self {
+    pub fn _clone(&self) -> Self {
         Self {
             e: [self.e[0], self.e[1], self.e[2]],
         }

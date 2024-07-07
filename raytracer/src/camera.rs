@@ -7,8 +7,8 @@ use std::thread;
 //use std::sync::mpsc::channel;
 //use std::time::Instant;
 
-//use crate::hittable_list::hittable::Hittable;
-use crate::hittable_list::HittableList;
+use crate::hittable_list::HitObject;
+//use crate::hittable_list::HittableList;
 use crate::rtweekend::color::write_color;
 use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::interval::Interval;
@@ -74,7 +74,7 @@ impl Camera {
             defocus_disk_v: self.defocus_disk_v,
         }
     }
-    fn ray_color(r: &Ray, depth: i32, world: &HittableList) -> Color {
+    fn ray_color(r: &Ray, depth: i32, world: &HitObject) -> Color {
         if depth <= 0 {
             return Color::new();
         }
@@ -180,7 +180,7 @@ impl Camera {
     }*/
     fn render_block(
         &self,
-        world: &HittableList,
+        world: &HitObject,
         start_y: u32,
         end_y: u32,
         result: Arc<Mutex<Vec<Color>>>,
@@ -197,7 +197,7 @@ impl Camera {
             }
         }
     }
-    pub fn render(&mut self, world: HittableList, file: &mut File, num_threads: u32) {
+    pub fn render(&mut self, world: HitObject, file: &mut File, num_threads: u32) {
         self.initialize();
         let total_pixels = self.height * self.width;
         let progress = ProgressBar::new(total_pixels as u64);

@@ -1,10 +1,12 @@
 use crate::rtweekend::INF;
+
+#[derive(Clone, Debug)]
 pub struct Interval {
     pub min: f64,
     pub max: f64,
 }
 impl Interval {
-    pub fn _size(&self) -> f64 {
+    pub fn size(&self) -> f64 {
         self.max - self.min
     }
     pub fn _contains(&self, x: f64) -> bool {
@@ -22,8 +24,15 @@ impl Interval {
         }
         x
     }
+    pub fn _expand(&self, delta: f64) -> Interval {
+        let padding = delta / 2.0;
+        Interval {
+            min: self.min - padding,
+            max: self.max + padding,
+        }
+    }
 }
-pub const _EMPTY: Interval = Interval {
+pub const EMPTY: Interval = Interval {
     min: INF,
     max: -INF,
 };
