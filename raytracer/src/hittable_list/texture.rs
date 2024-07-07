@@ -20,6 +20,7 @@ pub enum Texture {
     },
     Noisetexture {
         noise: Box<Perlin>,
+        scale: f64,
     },
 }
 impl Texture {
@@ -52,7 +53,9 @@ impl Texture {
                     e: image.pixel_data(i, j),
                 }
             }
-            Texture::Noisetexture { noise } => Color { e: [1.0, 1.0, 1.0] } * noise.noise(p),
+            Texture::Noisetexture { noise, scale } => {
+                Color { e: [1.0, 1.0, 1.0] } * noise.noise(&((*p) * (*scale)))
+            }
         }
     }
 }

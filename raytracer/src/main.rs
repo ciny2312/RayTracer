@@ -277,6 +277,7 @@ fn perlin_spheres(file: &mut File) {
     let mut world = new_hittable_list();
     let checker = Texture::Noisetexture {
         noise: Box::new(Perlin::build_perlin()),
+        scale: 4.0,
     };
     let pertext = Material::Lambertian {
         tex: Box::new(checker),
