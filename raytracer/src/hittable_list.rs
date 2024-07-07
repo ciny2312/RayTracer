@@ -1,7 +1,7 @@
 pub mod hittable;
 pub mod material;
+pub mod perlin;
 pub mod texture;
-//pub mod perlin;
 
 use crate::aabb::Aabb;
 use crate::rtweekend::interval::Interval;

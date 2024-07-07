@@ -17,7 +17,8 @@ use crate::hittable_list::material::Material;
 //use crate::hittable_list::material::Dielectric;
 //use crate::hittable_list::material::Lambertian;
 //use crate::hittable_list::material::Metal;
-use crate::hittable_list::texture::Texture::Checkertexture;
+use crate::hittable_list::perlin::Perlin;
+use crate::hittable_list::texture::Texture;
 use crate::hittable_list::texture::Texture::SolidColor;
 
 use crate::rtweekend::random_double;
@@ -28,7 +29,7 @@ use crate::rtweekend::vec3::Vec3;
 //use crate::sphere::Sphere;
 fn bouncing_spheres(file: &mut File) {
     let mut world = new_hittable_list();
-    let checker = Checkertexture {
+    let checker = Texture::Checkertexture {
         inv_scale: 1.0 / 0.32,
         even: Box::new(SolidColor {
             albedo: Color { e: [0.2, 0.3, 0.1] },
@@ -174,7 +175,7 @@ fn bouncing_spheres(file: &mut File) {
 }
 fn _checkered_spheres(file: &mut File) {
     let mut world = new_hittable_list();
-    let checker = Checkertexture {
+    let checker = Texture::Checkertexture {
         inv_scale: 1.0 / 0.32,
         even: Box::new(SolidColor {
             albedo: Color { e: [0.2, 0.3, 0.1] },
@@ -235,7 +236,7 @@ fn _checkered_spheres(file: &mut File) {
     cam.render(world, file, 16);
 }
 fn my_paint(file: &mut File) {
-    let path = "raytracer/src/paint1.jpg";
+    let path = "raytracer/src/paint2.jpg";
     let texture = rtw_image::load_image_to_float_array(path);
     let surface = Material::Lambertian {
         tex: Box::new(texture),
@@ -272,17 +273,77 @@ fn my_paint(file: &mut File) {
     };
     cam.render(globe, file, 16);
 }
+fn perlin_spheres(file: &mut File) {
+    let mut world = new_hittable_list();
+    let checker = Texture::Noisetexture {
+        noise: Box::new(Perlin::build_perlin()),
+    };
+    let pertext = Material::Lambertian {
+        tex: Box::new(checker),
+    };
+    world.add(build_sphere(
+        Point3 {
+            e: [0.0, -1000.0, 0.0],
+        },
+        Vec3::new(),
+        1000.0,
+        pertext.clone(),
+        false,
+    ));
+    world.add(build_sphere(
+        Point3 { e: [0.0, 2.0, 0.0] },
+        Vec3::new(),
+        2.0,
+        pertext,
+        false,
+    ));
+    let mut cam = Camera {
+        aspect_ratio: 16.0 / 9.0,
+        width: 400,
+        samples_per_pixel: 100,
+        max_depth: 50,
+
+        vfov: 20.0,
+        lookfrom: Point3 {
+            e: [13.0, 2.0, 3.0],
+        },
+        lookat: Point3 { e: [0.0, 0.0, 0.0] },
+        vup: Vec3 { e: [0.0, 1.0, 0.0] },
+
+        defocus_angle: 0.0,
+        focus_dist: 10.0,
+
+        height: 0,
+        camera_center: Vec3::new(),
+        pixel_loc: Vec3::new(),
+        delta_u: Vec3::new(),
+        delta_v: Vec3::new(),
+        pixel_samples_scale: 0.0,
+        u: Vec3::new(),
+        v: Vec3::new(),
+        w: Vec3::new(),
+        defocus_disk_u: Vec3::new(),
+        defocus_disk_v: Vec3::new(),
+    };
+    cam.render(world, file, 16);
+}
 fn main() {
-    let path = Path::new("output/book1/image7.ppm");
+    let path = Path::new("output/book1/image6.ppm");
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
     bouncing_spheres(&mut file);
-    let path = Path::new("output/book1/image8.ppm");
+    let path = Path::new("output/book1/image7.ppm");
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
     my_paint(&mut file);
+    let path = Path::new("output/book1/image8.ppm");
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    let mut file = File::create(path).unwrap();
+    perlin_spheres(&mut file);
 }

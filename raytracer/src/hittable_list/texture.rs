@@ -3,7 +3,7 @@ use crate::rtweekend::interval::Interval;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 
-//use crate::hittable_list::perlin::Perlin;
+use crate::hittable_list::perlin::Perlin;
 
 #[derive(Clone, Debug)]
 pub enum Texture {
@@ -18,9 +18,9 @@ pub enum Texture {
     Imagetexture {
         image: RtwImage,
     },
-    /*    NoiseTexture{
-        noise:Perlin,
-    }*/
+    Noisetexture {
+        noise: Box<Perlin>,
+    },
 }
 impl Texture {
     pub fn value(&self, u: f64, v: f64, p: &Point3) -> Color {
@@ -51,11 +51,8 @@ impl Texture {
                 Color {
                     e: image.pixel_data(i, j),
                 }
-            } /*    Texture::NoiseTexture{
-                  noise,
-              }=>{
-                  Color{e:[1.0,1.0,1.0]} * noise.noise(p);
-              }*/
+            }
+            Texture::Noisetexture { noise } => Color { e: [1.0, 1.0, 1.0] } * noise.noise(p),
         }
     }
 }
