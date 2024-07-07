@@ -53,8 +53,8 @@ impl Texture {
                     e: image.pixel_data(i, j),
                 }
             }
-            Texture::Noisetexture { noise, scale } => {
-                Color { e: [1.0, 1.0, 1.0] } * 0.5 * (1.0 + noise.noise(&((*p) * (*scale))))
+            Texture::Noisetexture { noise, scale: _ } => {
+                Color { e: [1.0, 1.0, 1.0] } * noise.turb(p, 7)
             }
         }
     }

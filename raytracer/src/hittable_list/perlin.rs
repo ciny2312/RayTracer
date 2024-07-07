@@ -25,28 +25,6 @@ impl Perlin {
             randvec,
         }
     }
-    pub fn noise(&self, p: &Point3) -> f64 {
-        let u = p.e[0] - p.e[0].floor();
-        let v = p.e[1] - p.e[1].floor();
-        let w = p.e[2] - p.e[2].floor();
-
-        let i = p.e[0].floor() as i32;
-        let j = p.e[1].floor() as i32;
-        let k = p.e[2].floor() as i32;
-        let mut c: [[[Vec3; 3]; 3]; 3] = [[[Vec3::new(); 3]; 3]; 3];
-
-        for (di, itemi) in c.iter_mut().enumerate().take(2) {
-            for (dj, itemj) in itemi.iter_mut().enumerate().take(2) {
-                for (dk, itemk) in itemj.iter_mut().enumerate().take(2) {
-                    *itemk = self.randvec[(self.x[(i as usize + di) & 255]
-                        ^ self.y[(j as usize + dj) & 255]
-                        ^ self.z[(k as usize + dk) & 255])
-                        as usize];
-                }
-            }
-        }
-        Self::perlin_interp(&c, u, v, w)
-    }
     fn perlin_interp(c: &[[[Vec3; 3]; 3]; 3], u: f64, v: f64, w: f64) -> f64 {
         let uu = u * u * (3.0 - 2.0 * u);
         let vv = v * v * (3.0 - 2.0 * v);
@@ -80,5 +58,38 @@ impl Perlin {
         }
         Self::permute(&mut p, POINT_COUNT);
         p
+    }
+    pub fn noise(&self, p: &Point3) -> f64 {
+        let u = p.e[0] - p.e[0].floor();
+        let v = p.e[1] - p.e[1].floor();
+        let w = p.e[2] - p.e[2].floor();
+
+        let i = p.e[0].floor() as i32;
+        let j = p.e[1].floor() as i32;
+        let k = p.e[2].floor() as i32;
+        let mut c: [[[Vec3; 3]; 3]; 3] = [[[Vec3::new(); 3]; 3]; 3];
+
+        for (di, itemi) in c.iter_mut().enumerate().take(2) {
+            for (dj, itemj) in itemi.iter_mut().enumerate().take(2) {
+                for (dk, itemk) in itemj.iter_mut().enumerate().take(2) {
+                    *itemk = self.randvec[(self.x[(i as usize + di) & 255]
+                        ^ self.y[(j as usize + dj) & 255]
+                        ^ self.z[(k as usize + dk) & 255])
+                        as usize];
+                }
+            }
+        }
+        Self::perlin_interp(&c, u, v, w)
+    }
+    pub fn turb(&self, p: &Point3, depth: i32) -> f64 {
+        let mut accum = 0.0;
+        let mut temp_p = *p;
+        let mut weight = 1.0;
+        for _i in 0..depth {
+            accum += self.noise(&temp_p) * weight;
+            weight *= 0.5;
+            temp_p = temp_p * 2.0;
+        }
+        accum.abs()
     }
 }
