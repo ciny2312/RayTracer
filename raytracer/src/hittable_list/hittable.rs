@@ -6,7 +6,7 @@ use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 //use crate::hittable_list::material::Lambertian;
-use crate::aabb::AABB;
+use crate::aabb::Aabb;
 use crate::hittable_list::material::Material;
 use crate::hittable_list::texture::Texture::SolidColor;
 use crate::hittable_list::HitObject;
@@ -75,8 +75,8 @@ fn box_z_compare(a: &HitObject, b: &HitObject) -> Ordering {
 }
 pub fn bvh_node(objects: &mut Vec<HitObject>, start: usize, end: usize) -> HitObject {
     let mut bbox = crate::aabb::EMPTY;
-    for object_index in start..end {
-        bbox = AABB::merge(&bbox, &objects[object_index].bounding_box());
+    for object_index in objects.iter().take(end).skip(start) {
+        bbox = Aabb::merge(&bbox, &object_index.bounding_box());
     }
     let axis = bbox.longest_axis();
 
@@ -102,7 +102,7 @@ pub fn bvh_node(objects: &mut Vec<HitObject>, start: usize, end: usize) -> HitOb
         left = bvh_node(objects, start, mid);
         right = bvh_node(objects, mid, end);
     }
-    HitObject::BVH {
+    HitObject::Bvh {
         left: Box::new(left),
         right: Box::new(right),
         bbox,
@@ -119,12 +119,12 @@ pub fn build_sphere(
         e: [radius, radius, radius],
     };
     let bbox = if is_moving {
-        AABB::merge(
-            &AABB::point_to_aabb(&(center_st - v), &(center_st + v)),
-            &AABB::point_to_aabb(&(center_st + center_vec - v), &(center_st + center_vec + v)),
+        Aabb::merge(
+            &Aabb::point_to_aabb(&(center_st - v), &(center_st + v)),
+            &Aabb::point_to_aabb(&(center_st + center_vec - v), &(center_st + center_vec + v)),
         )
     } else {
-        AABB::point_to_aabb(&(center_st - v), &(center_st + v))
+        Aabb::point_to_aabb(&(center_st - v), &(center_st + v))
     };
     HitObject::Sphere {
         center_st,

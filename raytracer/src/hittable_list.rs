@@ -2,7 +2,7 @@ pub mod hittable;
 pub mod material;
 pub mod texture;
 
-use crate::aabb::AABB;
+use crate::aabb::Aabb;
 use crate::rtweekend::interval::Interval;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Point3;
@@ -20,21 +20,21 @@ pub enum HitObject {
         mat: Material,
         is_moving: bool,
         center_vec: Vec3,
-        bbox: AABB,
+        bbox: Aabb,
     },
-    BVH {
+    Bvh {
         left: Box<HitObject>,
         right: Box<HitObject>,
-        bbox: AABB,
+        bbox: Aabb,
     },
     HittableList {
         objects: Vec<HitObject>,
-        bbox: AABB,
+        bbox: Aabb,
     },
 }
 
 impl HitObject {
-    pub fn bounding_box(&self) -> AABB {
+    pub fn bounding_box(&self) -> Aabb {
         match self {
             HitObject::Sphere {
                 center_st: _,
@@ -44,7 +44,7 @@ impl HitObject {
                 center_vec: _,
                 bbox,
             } => bbox.clone(),
-            HitObject::BVH {
+            HitObject::Bvh {
                 left: _,
                 right: _,
                 bbox,
@@ -62,7 +62,7 @@ impl HitObject {
                 center_vec: _,
                 bbox: _,
             } => Vec::new(),
-            HitObject::BVH {
+            HitObject::Bvh {
                 left: _,
                 right: _,
                 bbox: _,
@@ -80,7 +80,7 @@ impl HitObject {
                 center_vec,
                 bbox: _,
             } => *center_st + (*center_vec) * time,
-            HitObject::BVH {
+            HitObject::Bvh {
                 left: _,
                 right: _,
                 bbox: _,
@@ -130,7 +130,7 @@ impl HitObject {
                 rec.mat = mat.clone();
                 (rec, true)
             }
-            HitObject::BVH { left, right, bbox } => {
+            HitObject::Bvh { left, right, bbox } => {
                 if !bbox.hit(r, ray_t) {
                     return (HitRecord::new(), false);
                 }
@@ -142,7 +142,7 @@ impl HitObject {
                         max: if f1 { hit_left.t } else { ray_t.max },
                     },
                 );
-                return (if f2 { hit_right } else { hit_left }, f1 || f2);
+                (if f2 { hit_right } else { hit_left }, f1 || f2)
             }
             HitObject::HittableList {
                 objects: _,
@@ -166,7 +166,7 @@ impl HitObject {
                         rec = temp_rec;
                     }
                 }
-                return (rec, hit_anything);
+                (rec, hit_anything)
             }
         }
     }
@@ -180,14 +180,14 @@ impl HitObject {
                 center_vec: _,
                 bbox: _,
             } => (),
-            HitObject::BVH {
+            HitObject::Bvh {
                 left: _,
                 right: _,
                 bbox: _,
             } => (),
             HitObject::HittableList { objects, bbox } => {
                 objects.push(object.clone());
-                *bbox = AABB::merge(bbox, &object.bounding_box());
+                *bbox = Aabb::merge(bbox, &object.bounding_box());
             }
         }
     }

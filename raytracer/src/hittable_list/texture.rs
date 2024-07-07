@@ -13,7 +13,7 @@ pub enum Texture {
     },
 }
 impl Texture {
-    pub fn value(&self, u: f64, v: f64, p: &Point3) -> Color {
+    pub fn value(&self, _u: f64, _v: f64, p: &Point3) -> Color {
         match self {
             Texture::SolidColor { albedo } => *albedo,
             Texture::CheckerTexture {
@@ -27,9 +27,9 @@ impl Texture {
 
                 let is_even = (x_integer + y_integer + z_integer) % 2 == 0;
                 if is_even {
-                    even.value(u, v, p)
+                    even.value(_u, _v, p)
                 } else {
-                    odd.value(u, v, p)
+                    odd.value(_u, _v, p)
                 }
             }
         }

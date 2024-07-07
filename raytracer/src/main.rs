@@ -25,14 +25,7 @@ use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 //use crate::sphere::Sphere;
-
-fn main() {
-    let path = Path::new("output/book1/image7.ppm");
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).unwrap();
-    }
-    let mut file = File::create(path).unwrap();
-
+fn bouncing_spheres(file: &mut File) {
     let mut world = new_hittable_list();
     let checker = CheckerTexture {
         inv_scale: 1.0 / 0.32,
@@ -176,5 +169,81 @@ fn main() {
         defocus_disk_u: Vec3::new(),
         defocus_disk_v: Vec3::new(),
     };
-    cam.render(bvh_root, &mut file, 16);
+    cam.render(bvh_root, file, 16);
+}
+fn checkered_spheres(file: &mut File) {
+    let mut world = new_hittable_list();
+    let checker = CheckerTexture {
+        inv_scale: 1.0 / 0.32,
+        even: Box::new(SolidColor {
+            albedo: Color { e: [0.2, 0.3, 0.1] },
+        }),
+        odd: Box::new(SolidColor {
+            albedo: Color { e: [0.9, 0.9, 0.9] },
+        }),
+    };
+    let material_ground = Material::Lambertian {
+        tex: Box::new(checker),
+    };
+    world.add(build_sphere(
+        Point3 {
+            e: [0.0, -10.0, 0.0],
+        },
+        Vec3::new(),
+        10.0,
+        material_ground.clone(),
+        false,
+    ));
+    world.add(build_sphere(
+        Point3 {
+            e: [0.0, 10.0, 0.0],
+        },
+        Vec3::new(),
+        10.0,
+        material_ground,
+        false,
+    ));
+    let mut cam = Camera {
+        aspect_ratio: 16.0 / 9.0,
+        width: 400,
+        samples_per_pixel: 100,
+        max_depth: 50,
+
+        vfov: 20.0,
+        lookfrom: Point3 {
+            e: [13.0, 2.0, 3.0],
+        },
+        lookat: Point3 { e: [0.0, 0.0, 0.0] },
+        vup: Vec3 { e: [0.0, 1.0, 0.0] },
+
+        defocus_angle: 0.0,
+        focus_dist: 10.0,
+
+        height: 0,
+        camera_center: Vec3::new(),
+        pixel_loc: Vec3::new(),
+        delta_u: Vec3::new(),
+        delta_v: Vec3::new(),
+        pixel_samples_scale: 0.0,
+        u: Vec3::new(),
+        v: Vec3::new(),
+        w: Vec3::new(),
+        defocus_disk_u: Vec3::new(),
+        defocus_disk_v: Vec3::new(),
+    };
+    cam.render(world, file, 16);
+}
+fn main() {
+    let path = Path::new("output/book1/image7.ppm");
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    let mut file = File::create(path).unwrap();
+    bouncing_spheres(&mut file);
+    let path = Path::new("output/book1/image8.ppm");
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    let mut file = File::create(path).unwrap();
+    checkered_spheres(&mut file);
 }

@@ -14,7 +14,7 @@ pub enum Material {
     Dielectric { refraction_index: f64 },
 }
 impl Material {
-    pub fn clone(&self) -> Material {
+    /*    pub fn clone(&self) -> Material {
         match self {
             Material::Lambertian { tex } => Material::Lambertian { tex: tex.clone() },
             Material::Metal { albedo, fuzz } => Material::Metal {
@@ -25,7 +25,7 @@ impl Material {
                 refraction_index: *refraction_index,
             },
         }
-    }
+    }*/
     pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (Color, Ray, bool) {
         match self {
             Material::Lambertian { tex } => {

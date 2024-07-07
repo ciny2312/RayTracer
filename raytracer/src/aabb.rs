@@ -6,20 +6,20 @@ use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Point3;
 
 #[derive(Clone, Debug)]
-pub struct AABB {
+pub struct Aabb {
     pub b: [Interval; 3],
 }
-pub const EMPTY: AABB = AABB {
+pub const EMPTY: Aabb = Aabb {
     b: [interval::EMPTY, interval::EMPTY, interval::EMPTY],
 };
-pub const _UNIVERSE: AABB = AABB {
+pub const _UNIVERSE: Aabb = Aabb {
     b: [
         interval::_UNIVERSE,
         interval::_UNIVERSE,
         interval::_UNIVERSE,
     ],
 };
-impl AABB {
+impl Aabb {
     pub fn point_to_aabb(a: &Point3, b: &Point3) -> Self {
         let mut x = Interval {
             min: a.e[0],
@@ -44,15 +44,15 @@ impl AABB {
         }
         Self { b: [x, y, z] }
     }
-    pub fn merge(a: &AABB, b: &AABB) -> Self {
+    pub fn merge(a: &Aabb, b: &Aabb) -> Self {
         let mut new_b = [interval::EMPTY; 3];
-        for i in 0..3 {
-            new_b[i].min = if a.b[i].min < b.b[i].min {
+        for (i, item) in new_b.iter_mut().enumerate() {
+            item.min = if a.b[i].min < b.b[i].min {
                 a.b[i].min
             } else {
                 b.b[i].min
             };
-            new_b[i].max = if a.b[i].max > b.b[i].max {
+            item.max = if a.b[i].max > b.b[i].max {
                 a.b[i].max
             } else {
                 b.b[i].max
