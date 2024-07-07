@@ -17,7 +17,7 @@ use crate::hittable_list::material::Material;
 //use crate::hittable_list::material::Dielectric;
 //use crate::hittable_list::material::Lambertian;
 //use crate::hittable_list::material::Metal;
-use crate::hittable_list::texture::Texture::CheckerTexture;
+use crate::hittable_list::texture::Texture::Checkertexture;
 use crate::hittable_list::texture::Texture::SolidColor;
 
 use crate::rtweekend::random_double;
@@ -28,7 +28,7 @@ use crate::rtweekend::vec3::Vec3;
 //use crate::sphere::Sphere;
 fn bouncing_spheres(file: &mut File) {
     let mut world = new_hittable_list();
-    let checker = CheckerTexture {
+    let checker = Checkertexture {
         inv_scale: 1.0 / 0.32,
         even: Box::new(SolidColor {
             albedo: Color { e: [0.2, 0.3, 0.1] },
@@ -174,7 +174,7 @@ fn bouncing_spheres(file: &mut File) {
 }
 fn _checkered_spheres(file: &mut File) {
     let mut world = new_hittable_list();
-    let checker = CheckerTexture {
+    let checker = Checkertexture {
         inv_scale: 1.0 / 0.32,
         even: Box::new(SolidColor {
             albedo: Color { e: [0.2, 0.3, 0.1] },

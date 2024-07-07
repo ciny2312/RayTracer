@@ -27,7 +27,7 @@ pub fn load_image_to_float_array<P: AsRef<Path>>(path: P) -> Texture {
 
         float_pixels.push([r, g, b]);
     }
-    Texture::ImageTexture {
+    Texture::Imagetexture {
         image: RtwImage {
             width,
             height,

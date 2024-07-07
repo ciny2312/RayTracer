@@ -1,58 +1,45 @@
+use crate::rtweekend::random_double;
+use crate::rtweekend::random_int;
 
-#include "rtweekend.h"
-
-class perlin {
-  public:
-    perlin() {
-        randfloat = new double[point_count];
-        for (int i = 0; i < point_count; i++) {
-            randfloat[i] = random_double();
+const:i32 point_count=256;
+struct Perlin{
+    x:[i32,point_count],
+    y:[i32,point_count],
+    z:[i32,point_count],
+    randfloat:[f64,point_count],
+}
+impl Perlin{
+    fn build_perlin()->Self{
+        let randfloat:[f64,point_count];
+        for i in 0..point_count{
+            randfloat[i]=random_double();
         }
-
-        perm_x = perlin_generate_perm();
-        perm_y = perlin_generate_perm();
-        perm_z = perlin_generate_perm();
-    }
-
-    ~perlin() {
-        delete[] randfloat;
-        delete[] perm_x;
-        delete[] perm_y;
-        delete[] perm_z;
-    }
-
-    double noise(const point3& p) const {
-        auto i = int(4*p.x()) & 255;
-        auto j = int(4*p.y()) & 255;
-        auto k = int(4*p.z()) & 255;
-
-        return randfloat[perm_x[i] ^ perm_y[j] ^ perm_z[k]];
-    }
-
-  private:
-    static const int point_count = 256;
-    double* randfloat;
-    int* perm_x;
-    int* perm_y;
-    int* perm_z;
-
-    static int* perlin_generate_perm() {
-        auto p = new int[point_count];
-
-        for (int i = 0; i < point_count; i++)
-            p[i] = i;
-
-        permute(p, point_count);
-
-        return p;
-    }
-
-    static void permute(int* p, int n) {
-        for (int i = n-1; i > 0; i--) {
-            int target = random_int(0, i);
-            int tmp = p[i];
-            p[i] = p[target];
-            p[target] = tmp;
+        Perlin{
+            x:Self::perlin_generate_perm(),
+            y:Self::perlin_generate_perm(),
+            z:Self::perlin_generate_perm(),
+            randfloat,
         }
     }
-};
+    pub fn noise(p:&Point3)->f64{
+        let i=((4 as f64*p.e[0]) as i32)&255;
+        let j=((4 as f64*p.e[1]) as i32)&255;
+        let k=((4 as f64*p.e[2]) as i32)&255;
+
+        return randfloat[x[i] ^ y[j] ^ z[k]];
+    }
+    fn perlin_generate_perm()->[i32,point_count]{
+        let p=[i32,point_count];
+        for i in 0..point_count{
+            p[i]=i;
+        }
+        Self::permute(&mut p,point_count);
+        p
+    }
+    fn permute(p:&mut [i32,point_count],n:i32){
+        for i in 0..n{
+            let target=random_int(0,i);
+            p[i].swap(p[target as usize]);
+        }
+    }
+}

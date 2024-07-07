@@ -3,25 +3,30 @@ use crate::rtweekend::interval::Interval;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 
+//use crate::hittable_list::perlin::Perlin;
+
 #[derive(Clone, Debug)]
 pub enum Texture {
     SolidColor {
         albedo: Color,
     },
-    CheckerTexture {
+    Checkertexture {
         inv_scale: f64,
         even: Box<Texture>,
         odd: Box<Texture>,
     },
-    ImageTexture {
+    Imagetexture {
         image: RtwImage,
     },
+    /*    NoiseTexture{
+        noise:Perlin,
+    }*/
 }
 impl Texture {
     pub fn value(&self, u: f64, v: f64, p: &Point3) -> Color {
         match self {
             Texture::SolidColor { albedo } => *albedo,
-            Texture::CheckerTexture {
+            Texture::Checkertexture {
                 inv_scale,
                 even,
                 odd,
@@ -37,7 +42,7 @@ impl Texture {
                     odd.value(u, v, p)
                 }
             }
-            Texture::ImageTexture { image } => {
+            Texture::Imagetexture { image } => {
                 let interval = Interval { min: 0.0, max: 1.0 };
                 let u = interval.clamp(u);
                 let v = 1.0 - interval.clamp(v);
@@ -46,7 +51,11 @@ impl Texture {
                 Color {
                     e: image.pixel_data(i, j),
                 }
-            }
+            } /*    Texture::NoiseTexture{
+                  noise,
+              }=>{
+                  Color{e:[1.0,1.0,1.0]} * noise.noise(p);
+              }*/
         }
     }
 }
