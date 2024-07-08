@@ -413,7 +413,14 @@ fn simple_light(file: &mut File) {
         },
         Vec3 { e: [2.0, 0.0, 0.0] },
         Vec3 { e: [0.0, 2.0, 0.0] },
+        Material::Diffuselight { tex: difflight.clone() },
+    ));
+    world.add(build_sphere(
+        Point3 { e: [0.0, 7.0, 0.0] },
+        Vec3::new(),
+        2.0,
         Material::Diffuselight { tex: difflight },
+        false,
     ));
     let mut cam = Camera {
         aspect_ratio: 16.0 / 9.0,
