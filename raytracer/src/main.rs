@@ -9,6 +9,7 @@ use std::path::Path;
 
 use crate::camera::Camera;
 //use crate::hittable_list::HitObject;
+use crate::hittable_list::hittable::build_box;
 use crate::hittable_list::hittable::build_quad;
 use crate::hittable_list::hittable::build_sphere;
 use crate::hittable_list::hittable::bvh_node;
@@ -392,7 +393,25 @@ fn cornell_box(file: &mut File) {
         Vec3 {
             e: [0.0, 555.0, 0.0],
         },
-        white,
+        white.clone(),
+    ));
+    world.add(build_box(
+        &Point3 {
+            e: [130.0, 0.0, 65.0],
+        },
+        &Vec3 {
+            e: [295.0, 165.0, 230.0],
+        },
+        &white,
+    ));
+    world.add(build_box(
+        &Point3 {
+            e: [265.0, 0.0, 295.0],
+        },
+        &Vec3 {
+            e: [430.0, 330.0, 460.0],
+        },
+        &white,
     ));
     let mut cam = Camera {
         aspect_ratio: 1.0,
@@ -425,7 +444,10 @@ fn cornell_box(file: &mut File) {
         defocus_disk_u: Vec3::new(),
         defocus_disk_v: Vec3::new(),
     };
-    cam.render(world, file, 16);
+    let mut objects = world.get_objects();
+    let size = objects.len();
+    let bvh_root = bvh_node(&mut objects, 0, size);
+    cam.render(bvh_root, file, 16);
 }
 
 fn main() {

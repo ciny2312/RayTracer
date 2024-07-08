@@ -175,3 +175,70 @@ pub fn is_interior(a: f64, b: f64, rec: &mut HitRecord) -> bool {
     rec.v = b;
     true
 }
+pub fn build_box(a: &Point3, b: &Point3, mat: &Material) -> HitObject {
+    let mut sides = new_hittable_list();
+    let min = Point3 {
+        e: [a.e[0].min(b.e[0]), a.e[1].min(b.e[1]), a.e[2].min(b.e[2])],
+    };
+    let max = Point3 {
+        e: [a.e[0].max(b.e[0]), a.e[1].max(b.e[1]), a.e[2].max(b.e[2])],
+    };
+    let dx = Vec3 {
+        e: [max.e[0] - min.e[0], 0.0, 0.0],
+    };
+    let dy = Vec3 {
+        e: [0.0, max.e[1] - min.e[1], 0.0],
+    };
+    let dz = Vec3 {
+        e: [0.0, 0.0, max.e[2] - min.e[2]],
+    };
+    sides.add(build_quad(
+        Point3 {
+            e: [min.e[0], min.e[1], max.e[2]],
+        },
+        dx,
+        dy,
+        mat.clone(),
+    ));
+    sides.add(build_quad(
+        Point3 {
+            e: [max.e[0], min.e[1], max.e[2]],
+        },
+        -dz,
+        dy,
+        mat.clone(),
+    ));
+    sides.add(build_quad(
+        Point3 {
+            e: [max.e[0], min.e[1], min.e[2]],
+        },
+        -dx,
+        dy,
+        mat.clone(),
+    ));
+    sides.add(build_quad(
+        Point3 {
+            e: [min.e[0], min.e[1], min.e[2]],
+        },
+        dz,
+        dy,
+        mat.clone(),
+    ));
+    sides.add(build_quad(
+        Point3 {
+            e: [min.e[0], max.e[1], max.e[2]],
+        },
+        dx,
+        -dz,
+        mat.clone(),
+    ));
+    sides.add(build_quad(
+        Point3 {
+            e: [min.e[0], min.e[1], min.e[2]],
+        },
+        dx,
+        dz,
+        mat.clone(),
+    ));
+    sides
+}
