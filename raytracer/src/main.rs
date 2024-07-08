@@ -218,167 +218,6 @@ fn my_paint(file: &mut File) {
     };
     cam.render(globe, file, 16);
 }
-fn perlin_spheres(file: &mut File) {
-    let mut world = new_hittable_list();
-    let checker = Texture::Noisetexture {
-        noise: Box::new(Perlin::build_perlin()),
-        scale: 4.0,
-    };
-    let pertext = Material::Lambertian {
-        tex: Box::new(checker),
-    };
-    world.add(build_sphere(
-        Point3 {
-            e: [0.0, -1000.0, 0.0],
-        },
-        Vec3::new(),
-        1000.0,
-        pertext.clone(),
-        false,
-    ));
-    world.add(build_sphere(
-        Point3 { e: [0.0, 2.0, 0.0] },
-        Vec3::new(),
-        2.0,
-        pertext,
-        false,
-    ));
-    let mut cam = Camera {
-        aspect_ratio: 16.0 / 9.0,
-        width: 400,
-        samples_per_pixel: 100,
-        max_depth: 50,
-        background: Color {
-            e: [0.70, 0.80, 1.00],
-        },
-
-        vfov: 20.0,
-        lookfrom: Point3 {
-            e: [13.0, 2.0, 3.0],
-        },
-        lookat: Point3 { e: [0.0, 0.0, 0.0] },
-        vup: Vec3 { e: [0.0, 1.0, 0.0] },
-
-        defocus_angle: 0.0,
-        focus_dist: 10.0,
-
-        height: 0,
-        camera_center: Vec3::new(),
-        pixel_loc: Vec3::new(),
-        delta_u: Vec3::new(),
-        delta_v: Vec3::new(),
-        pixel_samples_scale: 0.0,
-        u: Vec3::new(),
-        v: Vec3::new(),
-        w: Vec3::new(),
-        defocus_disk_u: Vec3::new(),
-        defocus_disk_v: Vec3::new(),
-    };
-    cam.render(world, file, 16);
-}
-fn quads(file: &mut File) {
-    let mut world = new_hittable_list();
-
-    let left_red = Material::Lambertian {
-        tex: Box::new(Texture::SolidColor {
-            albedo: Color { e: [1.0, 0.2, 0.2] },
-        }),
-    };
-    let back_green = Material::Lambertian {
-        tex: Box::new(Texture::SolidColor {
-            albedo: Color { e: [0.2, 1.0, 0.2] },
-        }),
-    };
-    let right_blue = Material::Lambertian {
-        tex: Box::new(Texture::SolidColor {
-            albedo: Color { e: [0.2, 0.2, 1.0] },
-        }),
-    };
-    let upper_orange = Material::Lambertian {
-        tex: Box::new(Texture::SolidColor {
-            albedo: Color { e: [1.0, 0.5, 0.0] },
-        }),
-    };
-    let lower_teal = Material::Lambertian {
-        tex: Box::new(Texture::SolidColor {
-            albedo: Color { e: [0.2, 0.8, 0.8] },
-        }),
-    };
-    world.add(build_quad(
-        Point3 {
-            e: [-3.0, -2.0, 5.0],
-        },
-        Vec3 {
-            e: [0.0, 0.0, -4.0],
-        },
-        Vec3 { e: [0.0, 4.0, 0.0] },
-        left_red,
-    ));
-    world.add(build_quad(
-        Point3 {
-            e: [-2.0, -2.0, 0.0],
-        },
-        Vec3 { e: [4.0, 0.0, 0.0] },
-        Vec3 { e: [0.0, 4.0, 0.0] },
-        back_green,
-    ));
-    world.add(build_quad(
-        Point3 {
-            e: [3.0, -2.0, 1.0],
-        },
-        Vec3 { e: [0.0, 0.0, 4.0] },
-        Vec3 { e: [0.0, 4.0, 0.0] },
-        right_blue,
-    ));
-    world.add(build_quad(
-        Point3 {
-            e: [-2.0, 3.0, 1.0],
-        },
-        Vec3 { e: [4.0, 0.0, 0.0] },
-        Vec3 { e: [0.0, 0.0, 4.0] },
-        upper_orange,
-    ));
-    world.add(build_quad(
-        Point3 {
-            e: [-2.0, -3.0, 5.0],
-        },
-        Vec3 { e: [4.0, 0.0, 0.0] },
-        Vec3 {
-            e: [0.0, 0.0, -4.0],
-        },
-        lower_teal,
-    ));
-    let mut cam = Camera {
-        aspect_ratio: 1.0,
-        width: 400,
-        samples_per_pixel: 100,
-        max_depth: 50,
-        background: Color {
-            e: [0.70, 0.80, 1.00],
-        },
-
-        vfov: 80.0,
-        lookfrom: Point3 { e: [0.0, 0.0, 9.0] },
-        lookat: Point3 { e: [0.0, 0.0, 0.0] },
-        vup: Vec3 { e: [0.0, 1.0, 0.0] },
-
-        defocus_angle: 0.0,
-        focus_dist: 10.0,
-
-        height: 0,
-        camera_center: Vec3::new(),
-        pixel_loc: Vec3::new(),
-        delta_u: Vec3::new(),
-        delta_v: Vec3::new(),
-        pixel_samples_scale: 0.0,
-        u: Vec3::new(),
-        v: Vec3::new(),
-        w: Vec3::new(),
-        defocus_disk_u: Vec3::new(),
-        defocus_disk_v: Vec3::new(),
-    };
-    cam.render(world, file, 16);
-}
 fn simple_light(file: &mut File) {
     let mut world = new_hittable_list();
     let pertext = Box::new(Texture::Noisetexture {
@@ -413,7 +252,9 @@ fn simple_light(file: &mut File) {
         },
         Vec3 { e: [2.0, 0.0, 0.0] },
         Vec3 { e: [0.0, 2.0, 0.0] },
-        Material::Diffuselight { tex: difflight.clone() },
+        Material::Diffuselight {
+            tex: difflight.clone(),
+        },
     ));
     world.add(build_sphere(
         Point3 { e: [0.0, 7.0, 0.0] },
@@ -453,6 +294,139 @@ fn simple_light(file: &mut File) {
     };
     cam.render(world, file, 16);
 }
+fn cornell_box(file: &mut File) {
+    let mut world = new_hittable_list();
+
+    let red = Material::Lambertian {
+        tex: Box::new(SolidColor {
+            albedo: Color {
+                e: [0.65, 0.05, 0.05],
+            },
+        }),
+    };
+    let white = Material::Lambertian {
+        tex: Box::new(SolidColor {
+            albedo: Color {
+                e: [0.73, 0.73, 0.73],
+            },
+        }),
+    };
+    let green = Material::Lambertian {
+        tex: Box::new(SolidColor {
+            albedo: Color {
+                e: [0.12, 0.45, 0.15],
+            },
+        }),
+    };
+    let light = Material::Diffuselight {
+        tex: Box::new(SolidColor {
+            albedo: Color {
+                e: [15.0, 15.0, 15.0],
+            },
+        }),
+    };
+
+    world.add(build_quad(
+        Point3 {
+            e: [555.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 555.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, 555.0],
+        },
+        green,
+    ));
+    world.add(build_quad(
+        Point3 { e: [0.0, 0.0, 0.0] },
+        Vec3 {
+            e: [0.0, 555.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, 555.0],
+        },
+        red,
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [343.0, 554.0, 332.0],
+        },
+        Vec3 {
+            e: [-130.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, -105.0],
+        },
+        light,
+    ));
+    world.add(build_quad(
+        Point3 { e: [0.0, 0.0, 0.0] },
+        Vec3 {
+            e: [555.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, 555.0],
+        },
+        white.clone(),
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [555.0, 555.0, 555.0],
+        },
+        Vec3 {
+            e: [-555.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, -555.0],
+        },
+        white.clone(),
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [0.0, 0.0, 555.0],
+        },
+        Vec3 {
+            e: [555.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 555.0, 0.0],
+        },
+        white,
+    ));
+    let mut cam = Camera {
+        aspect_ratio: 1.0,
+        width: 600,
+        samples_per_pixel: 200,
+        max_depth: 50,
+        background: Color::new(),
+
+        vfov: 40.0,
+        lookfrom: Point3 {
+            e: [278.0, 278.0, -800.0],
+        },
+        lookat: Point3 {
+            e: [278.0, 278.0, 0.0],
+        },
+        vup: Vec3 { e: [0.0, 1.0, 0.0] },
+
+        defocus_angle: 0.0,
+        focus_dist: 10.0,
+
+        height: 0,
+        camera_center: Vec3::new(),
+        pixel_loc: Vec3::new(),
+        delta_u: Vec3::new(),
+        delta_v: Vec3::new(),
+        pixel_samples_scale: 0.0,
+        u: Vec3::new(),
+        v: Vec3::new(),
+        w: Vec3::new(),
+        defocus_disk_u: Vec3::new(),
+        defocus_disk_v: Vec3::new(),
+    };
+    cam.render(world, file, 16);
+}
 
 fn main() {
     let path = Path::new("output/book1/image6.ppm");
@@ -469,24 +443,16 @@ fn main() {
     let mut file = File::create(path).unwrap();
     my_paint(&mut file);
 
-    let path = Path::new("output/book1/image8.ppm");
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).unwrap();
-    }
-    let mut file = File::create(path).unwrap();
-    perlin_spheres(&mut file);
-
-    let path = Path::new("output/book1/image8.ppm");
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).unwrap();
-    }
-    let mut file = File::create(path).unwrap();
-    quads(&mut file);
-
     let path = Path::new("output/book1/image9.ppm");
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
     simple_light(&mut file);
+    let path = Path::new("output/book1/image10.ppm");
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    let mut file = File::create(path).unwrap();
+    cornell_box(&mut file);
 }
