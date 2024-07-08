@@ -20,45 +20,17 @@ pub const _UNIVERSE: Aabb = Aabb {
     ],
 };
 impl Aabb {
-    pub fn point_to_aabb(a: &Point3, b: &Point3) -> Self {
-        let mut x = Interval {
-            min: a.e[0],
-            max: b.e[0],
-        };
-        if x.min > x.max {
-            swap(&mut x.min, &mut x.max);
+    pub fn pad_to_minimums(&mut self) {
+        let delta = 0.0001;
+        if self.b[0].size() < delta {
+            self.b[0] = self.b[0].expand(delta);
         }
-        let mut y = Interval {
-            min: a.e[1],
-            max: b.e[1],
-        };
-        if y.min > y.max {
-            swap(&mut y.min, &mut y.max);
+        if self.b[1].size() < delta {
+            self.b[1] = self.b[1].expand(delta);
         }
-        let mut z = Interval {
-            min: a.e[2],
-            max: b.e[2],
-        };
-        if z.min > z.max {
-            swap(&mut z.min, &mut z.max);
+        if self.b[2].size() < delta {
+            self.b[2] = self.b[2].expand(delta);
         }
-        Self { b: [x, y, z] }
-    }
-    pub fn merge(a: &Aabb, b: &Aabb) -> Self {
-        let mut new_b = [interval::EMPTY; 3];
-        for (i, item) in new_b.iter_mut().enumerate() {
-            item.min = if a.b[i].min < b.b[i].min {
-                a.b[i].min
-            } else {
-                b.b[i].min
-            };
-            item.max = if a.b[i].max > b.b[i].max {
-                a.b[i].max
-            } else {
-                b.b[i].max
-            };
-        }
-        Self { b: new_b }
     }
     pub fn longest_axis(&self) -> u32 {
         if self.b[0].size() > self.b[1].size() {
@@ -105,4 +77,46 @@ impl Aabb {
         }
         interval.min < interval.max
     }
+}
+pub fn point_to_aabb(a: &Point3, b: &Point3) -> Aabb {
+    let mut x = Interval {
+        min: a.e[0],
+        max: b.e[0],
+    };
+    if x.min > x.max {
+        swap(&mut x.min, &mut x.max);
+    }
+    let mut y = Interval {
+        min: a.e[1],
+        max: b.e[1],
+    };
+    if y.min > y.max {
+        swap(&mut y.min, &mut y.max);
+    }
+    let mut z = Interval {
+        min: a.e[2],
+        max: b.e[2],
+    };
+    if z.min > z.max {
+        swap(&mut z.min, &mut z.max);
+    }
+    let mut aabb = Aabb { b: [x, y, z] };
+    aabb.pad_to_minimums();
+    aabb
+}
+pub fn merge(a: &Aabb, b: &Aabb) -> Aabb {
+    let mut new_b = [interval::EMPTY; 3];
+    for (i, item) in new_b.iter_mut().enumerate() {
+        item.min = if a.b[i].min < b.b[i].min {
+            a.b[i].min
+        } else {
+            b.b[i].min
+        };
+        item.max = if a.b[i].max > b.b[i].max {
+            a.b[i].max
+        } else {
+            b.b[i].max
+        };
+    }
+    Aabb { b: new_b }
 }

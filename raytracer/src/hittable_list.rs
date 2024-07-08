@@ -3,7 +3,9 @@ pub mod material;
 pub mod perlin;
 pub mod texture;
 
+use crate::aabb::merge;
 use crate::aabb::Aabb;
+//use crate::aabb::point_to_aabb;
 use crate::rtweekend::interval::Interval;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Point3;
@@ -22,6 +24,16 @@ pub enum HitObject {
         is_moving: bool,
         center_vec: Vec3,
         bbox: Aabb,
+    },
+    Quad {
+        q: Point3,
+        u: Vec3,
+        v: Vec3,
+        w: Vec3,
+        mat: Material,
+        bbox: Aabb,
+        normal: Vec3,
+        d: f64,
     },
     Bvh {
         left: Box<HitObject>,
@@ -45,6 +57,16 @@ impl HitObject {
                 center_vec: _,
                 bbox,
             } => bbox.clone(),
+            HitObject::Quad {
+                q: _,
+                u: _,
+                v: _,
+                w: _,
+                mat: _,
+                bbox,
+                normal: _,
+                d: _,
+            } => bbox.clone(),
             HitObject::Bvh {
                 left: _,
                 right: _,
@@ -62,6 +84,16 @@ impl HitObject {
                 is_moving: _,
                 center_vec: _,
                 bbox: _,
+            } => Vec::new(),
+            HitObject::Quad {
+                q: _,
+                u: _,
+                v: _,
+                w: _,
+                mat: _,
+                bbox: _,
+                normal: _,
+                d: _,
             } => Vec::new(),
             HitObject::Bvh {
                 left: _,
@@ -81,6 +113,16 @@ impl HitObject {
                 center_vec,
                 bbox: _,
             } => *center_st + (*center_vec) * time,
+            HitObject::Quad {
+                q: _,
+                u: _,
+                v: _,
+                w: _,
+                mat: _,
+                bbox: _,
+                normal: _,
+                d: _,
+            } => Vec3::new(),
             HitObject::Bvh {
                 left: _,
                 right: _,
@@ -130,6 +172,39 @@ impl HitObject {
                 (rec.u, rec.v) = hittable::get_sphere_uv(&outward_normal);
                 rec.set_face_normal(r, outward_normal);
                 rec.mat = mat.clone();
+                (rec, true)
+            }
+            HitObject::Quad {
+                q,
+                u,
+                v,
+                w,
+                mat,
+                bbox: _,
+                normal,
+                d,
+            } => {
+                let mut rec = HitRecord::new();
+                let denom = Vec3::dot(normal, &r.dir);
+                if denom.abs() < 1e-8 {
+                    return (rec, false);
+                }
+                let t = (d - Vec3::dot(normal, &r.ori)) / denom;
+                if !ray_t.contains(t) {
+                    return (rec, false);
+                }
+                let intersection = r.at(t);
+                let planar_hitpt_vector = intersection - *q;
+                let alpha = Vec3::dot(w, &Vec3::cross(&planar_hitpt_vector, v));
+                let beta = Vec3::dot(w, &Vec3::cross(u, &planar_hitpt_vector));
+                if !hittable::is_interior(alpha, beta, &mut rec) {
+                    return (rec, false);
+                }
+
+                rec.t = t;
+                rec.p = intersection;
+                rec.mat = mat.clone();
+                rec.set_face_normal(r, *normal);
                 (rec, true)
             }
             HitObject::Bvh { left, right, bbox } => {
@@ -182,6 +257,16 @@ impl HitObject {
                 center_vec: _,
                 bbox: _,
             } => (),
+            HitObject::Quad {
+                q: _,
+                u: _,
+                v: _,
+                w: _,
+                mat: _,
+                bbox: _,
+                normal: _,
+                d: _,
+            } => (),
             HitObject::Bvh {
                 left: _,
                 right: _,
@@ -189,7 +274,7 @@ impl HitObject {
             } => (),
             HitObject::HittableList { objects, bbox } => {
                 objects.push(object.clone());
-                *bbox = Aabb::merge(bbox, &object.bounding_box());
+                *bbox = merge(bbox, &object.bounding_box());
             }
         }
     }

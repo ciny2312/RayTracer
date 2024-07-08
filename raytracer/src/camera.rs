@@ -116,8 +116,8 @@ impl Camera {
         let viewport_width = viewport_height * (self.width as f64 / self.height as f64);
 
         self.w = Vec3::unit_vector(self.lookfrom - self.lookat);
-        self.u = Vec3::unit_vector(Vec3::cross(self.vup, self.w));
-        self.v = Vec3::cross(self.w, self.u);
+        self.u = Vec3::unit_vector(Vec3::cross(&self.vup, &self.w));
+        self.v = Vec3::cross(&self.w, &self.u);
 
         let viewport_u = self.u * viewport_width;
         let viewport_v = -self.v * viewport_height;

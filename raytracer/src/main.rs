@@ -9,6 +9,7 @@ use std::path::Path;
 
 use crate::camera::Camera;
 //use crate::hittable_list::HitObject;
+use crate::hittable_list::hittable::build_quad;
 use crate::hittable_list::hittable::build_sphere;
 use crate::hittable_list::hittable::bvh_node;
 use crate::hittable_list::hittable::new_hittable_list;
@@ -173,36 +174,29 @@ fn bouncing_spheres(file: &mut File) {
     };
     cam.render(bvh_root, file, 16);
 }
-fn _checkered_spheres(file: &mut File) {
+fn perlin_spheres(file: &mut File) {
     let mut world = new_hittable_list();
-    let checker = Texture::Checkertexture {
-        inv_scale: 1.0 / 0.32,
-        even: Box::new(SolidColor {
-            albedo: Color { e: [0.2, 0.3, 0.1] },
-        }),
-        odd: Box::new(SolidColor {
-            albedo: Color { e: [0.9, 0.9, 0.9] },
-        }),
+    let checker = Texture::Noisetexture {
+        noise: Box::new(Perlin::build_perlin()),
+        scale: 4.0,
     };
-    let material_ground = Material::Lambertian {
+    let pertext = Material::Lambertian {
         tex: Box::new(checker),
     };
     world.add(build_sphere(
         Point3 {
-            e: [0.0, -10.0, 0.0],
+            e: [0.0, -1000.0, 0.0],
         },
         Vec3::new(),
-        10.0,
-        material_ground.clone(),
+        1000.0,
+        pertext.clone(),
         false,
     ));
     world.add(build_sphere(
-        Point3 {
-            e: [0.0, 10.0, 0.0],
-        },
+        Point3 { e: [0.0, 2.0, 0.0] },
         Vec3::new(),
-        10.0,
-        material_ground,
+        2.0,
+        pertext,
         false,
     ));
     let mut cam = Camera {
@@ -273,41 +267,86 @@ fn my_paint(file: &mut File) {
     };
     cam.render(globe, file, 16);
 }
-fn perlin_spheres(file: &mut File) {
+fn quads(file: &mut File) {
     let mut world = new_hittable_list();
-    let checker = Texture::Noisetexture {
-        noise: Box::new(Perlin::build_perlin()),
-        scale: 4.0,
+
+    let left_red = Material::Lambertian {
+        tex: Box::new(Texture::SolidColor {
+            albedo: Color { e: [1.0, 0.2, 0.2] },
+        }),
     };
-    let pertext = Material::Lambertian {
-        tex: Box::new(checker),
+    let back_green = Material::Lambertian {
+        tex: Box::new(Texture::SolidColor {
+            albedo: Color { e: [0.2, 1.0, 0.2] },
+        }),
     };
-    world.add(build_sphere(
+    let right_blue = Material::Lambertian {
+        tex: Box::new(Texture::SolidColor {
+            albedo: Color { e: [0.2, 0.2, 1.0] },
+        }),
+    };
+    let upper_orange = Material::Lambertian {
+        tex: Box::new(Texture::SolidColor {
+            albedo: Color { e: [1.0, 0.5, 0.0] },
+        }),
+    };
+    let lower_teal = Material::Lambertian {
+        tex: Box::new(Texture::SolidColor {
+            albedo: Color { e: [0.2, 0.8, 0.8] },
+        }),
+    };
+    world.add(build_quad(
         Point3 {
-            e: [0.0, -1000.0, 0.0],
+            e: [-3.0, -2.0, 5.0],
         },
-        Vec3::new(),
-        1000.0,
-        pertext.clone(),
-        false,
+        Vec3 {
+            e: [0.0, 0.0, -4.0],
+        },
+        Vec3 { e: [0.0, 4.0, 0.0] },
+        left_red,
     ));
-    world.add(build_sphere(
-        Point3 { e: [0.0, 2.0, 0.0] },
-        Vec3::new(),
-        2.0,
-        pertext,
-        false,
+    world.add(build_quad(
+        Point3 {
+            e: [-2.0, -2.0, 0.0],
+        },
+        Vec3 { e: [4.0, 0.0, 0.0] },
+        Vec3 { e: [0.0, 4.0, 0.0] },
+        back_green,
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [3.0, -2.0, 1.0],
+        },
+        Vec3 { e: [0.0, 0.0, 4.0] },
+        Vec3 { e: [0.0, 4.0, 0.0] },
+        right_blue,
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [-2.0, 3.0, 1.0],
+        },
+        Vec3 { e: [4.0, 0.0, 0.0] },
+        Vec3 { e: [0.0, 0.0, 4.0] },
+        upper_orange,
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [-2.0, -3.0, 5.0],
+        },
+        Vec3 { e: [4.0, 0.0, 0.0] },
+        Vec3 {
+            e: [0.0, 0.0, -4.0],
+        },
+        lower_teal,
     ));
     let mut cam = Camera {
-        aspect_ratio: 16.0 / 9.0,
+        aspect_ratio: 1.0,
         width: 400,
         samples_per_pixel: 100,
         max_depth: 50,
 
-        vfov: 20.0,
-        lookfrom: Point3 {
-            e: [13.0, 2.0, 3.0],
-        },
+        vfov: 80.0,
+        lookfrom: Point3 { e: [0.0, 0.0, 9.0] },
         lookat: Point3 { e: [0.0, 0.0, 0.0] },
         vup: Vec3 { e: [0.0, 1.0, 0.0] },
 
@@ -335,16 +374,25 @@ fn main() {
     }
     let mut file = File::create(path).unwrap();
     bouncing_spheres(&mut file);
+
     let path = Path::new("output/book1/image7.ppm");
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
     my_paint(&mut file);
+
     let path = Path::new("output/book1/image8.ppm");
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
     perlin_spheres(&mut file);
+
+    let path = Path::new("output/book1/image8.ppm");
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    let mut file = File::create(path).unwrap();
+    quads(&mut file);
 }

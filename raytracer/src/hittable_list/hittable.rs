@@ -1,12 +1,15 @@
 use std::cmp::Ordering;
 
 //use crate::rtweekend::interval::Interval;
+use crate::rtweekend::interval::Interval;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 //use crate::hittable_list::material::Lambertian;
-use crate::aabb::Aabb;
+//use crate::aabb::Aabb;
+use crate::aabb::merge;
+use crate::aabb::point_to_aabb;
 use crate::hittable_list::material::Material;
 use crate::hittable_list::texture::Texture::SolidColor;
 use crate::hittable_list::HitObject;
@@ -76,7 +79,7 @@ fn box_z_compare(a: &HitObject, b: &HitObject) -> Ordering {
 pub fn bvh_node(objects: &mut Vec<HitObject>, start: usize, end: usize) -> HitObject {
     let mut bbox = crate::aabb::EMPTY;
     for object_index in objects.iter().take(end).skip(start) {
-        bbox = Aabb::merge(&bbox, &object_index.bounding_box());
+        bbox = merge(&bbox, &object_index.bounding_box());
     }
     let axis = bbox.longest_axis();
 
@@ -119,12 +122,12 @@ pub fn build_sphere(
         e: [radius, radius, radius],
     };
     let bbox = if is_moving {
-        Aabb::merge(
-            &Aabb::point_to_aabb(&(center_st - v), &(center_st + v)),
-            &Aabb::point_to_aabb(&(center_st + center_vec - v), &(center_st + center_vec + v)),
+        merge(
+            &point_to_aabb(&(center_st - v), &(center_st + v)),
+            &point_to_aabb(&(center_st + center_vec - v), &(center_st + center_vec + v)),
         )
     } else {
-        Aabb::point_to_aabb(&(center_st - v), &(center_st + v))
+        point_to_aabb(&(center_st - v), &(center_st + v))
     };
     HitObject::Sphere {
         center_st,
@@ -142,4 +145,33 @@ pub fn get_sphere_uv(p: &Point3) -> (f64, f64) {
         phi / (2.0 * std::f64::consts::PI),
         theta / std::f64::consts::PI,
     )
+}
+pub fn build_quad(q: Point3, u: Vec3, v: Vec3, mat: Material) -> HitObject {
+    let n = Vec3::cross(&u, &v);
+    let normal = Vec3::unit_vector(n);
+    let d = Vec3::dot(&normal, &q);
+    let w = n / Vec3::dot(&n, &n);
+    let bbox = merge(
+        &point_to_aabb(&q, &(q + u + v)),
+        &point_to_aabb(&(q + u), &(q + v)),
+    );
+    HitObject::Quad {
+        q,
+        u,
+        v,
+        w,
+        mat,
+        normal,
+        bbox,
+        d,
+    }
+}
+pub fn is_interior(a: f64, b: f64, rec: &mut HitRecord) -> bool {
+    let unit_interval = Interval { min: 0.0, max: 1.0 };
+    if !unit_interval.contains(a) || !unit_interval.contains(b) {
+        return false;
+    }
+    rec.u = a;
+    rec.v = b;
+    true
 }
