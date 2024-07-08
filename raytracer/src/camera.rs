@@ -24,6 +24,7 @@ pub struct Camera {
     pub width: u32,        // Rendered image width in pixel count
     pub samples_per_pixel: u32,
     pub max_depth: u32,
+    pub background: Color,
 
     pub vfov: f64,
     pub lookfrom: Point3,
@@ -52,6 +53,7 @@ impl Camera {
             width: self.width,               // Rendered image width in pixel count
             samples_per_pixel: self.samples_per_pixel,
             max_depth: self.max_depth,
+            background: self.background,
 
             vfov: self.vfov,
             lookfrom: self.lookfrom,
@@ -74,7 +76,7 @@ impl Camera {
             defocus_disk_v: self.defocus_disk_v,
         }
     }
-    fn ray_color(r: &Ray, depth: i32, world: &HitObject) -> Color {
+    fn ray_color(&self, r: &Ray, depth: i32, world: &HitObject) -> Color {
         if depth <= 0 {
             return Color::new();
         }
@@ -86,15 +88,15 @@ impl Camera {
             },
         );
         if flag {
+            let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
             let (attenuation, scattered, flag1) = rec.mat.scatter(r, &rec);
             if flag1 {
-                return Self::ray_color(&scattered, depth - 1, world) * attenuation;
+                return color_from_emission
+                    + self.ray_color(&scattered, depth - 1, world) * attenuation;
             }
-            return Color::new();
+            return color_from_emission;
         }
-        let unit_direction = Vec3::unit_vector(r.dir);
-        let a = 0.5 * (unit_direction.e[1] + 1.0);
-        Color { e: [1.0, 1.0, 1.0] } * (1.0 - a) + Color { e: [0.5, 0.7, 1.0] } * a
+        self.background
     }
     fn initialize(&mut self) {
         self.height = (self.width as f64 / self.aspect_ratio) as u32;
@@ -190,7 +192,7 @@ impl Camera {
                 let mut pixel_color = Color::new();
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color = pixel_color + Self::ray_color(&r, self.max_depth as i32, world);
+                    pixel_color = pixel_color + self.ray_color(&r, self.max_depth as i32, world);
                 }
                 let mut buffer = result.lock().unwrap();
                 buffer[(j * self.width + i) as usize] = pixel_color * self.pixel_samples_scale;

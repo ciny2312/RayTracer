@@ -7,6 +7,13 @@ pub struct Ray {
     pub tm: f64,
 }
 impl Ray {
+    pub fn new() -> Ray {
+        Ray {
+            dir: Vec3::new(),
+            ori: Vec3::new(),
+            tm: 0.0,
+        }
+    }
     pub fn at(&self, t: f64) -> Point3 {
         self.ori + self.dir * t
     }

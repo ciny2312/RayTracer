@@ -149,6 +149,9 @@ fn bouncing_spheres(file: &mut File) {
         width: 400,
         samples_per_pixel: 100,
         max_depth: 50,
+        background: Color {
+            e: [0.70, 0.80, 1.00],
+        },
 
         vfov: 20.0,
         lookfrom: Point3 {
@@ -173,6 +176,47 @@ fn bouncing_spheres(file: &mut File) {
         defocus_disk_v: Vec3::new(),
     };
     cam.render(bvh_root, file, 16);
+}
+fn my_paint(file: &mut File) {
+    let path = "raytracer/src/paint2.jpg";
+    let texture = rtw_image::load_image_to_float_array(path);
+    let surface = Material::Lambertian {
+        tex: Box::new(texture),
+    };
+    let globe = build_sphere(Point3::new(), Vec3::new(), 2.0, surface, false);
+
+    let mut cam = Camera {
+        aspect_ratio: 16.0 / 9.0,
+        width: 400,
+        samples_per_pixel: 100,
+        max_depth: 50,
+        background: Color {
+            e: [0.70, 0.80, 1.00],
+        },
+
+        vfov: 20.0,
+        lookfrom: Point3 {
+            e: [0.0, 0.0, 12.0],
+        },
+        lookat: Point3 { e: [0.0, 0.0, 0.0] },
+        vup: Vec3 { e: [0.0, 1.0, 0.0] },
+
+        defocus_angle: 0.0,
+        focus_dist: 10.0,
+
+        height: 0,
+        camera_center: Vec3::new(),
+        pixel_loc: Vec3::new(),
+        delta_u: Vec3::new(),
+        delta_v: Vec3::new(),
+        pixel_samples_scale: 0.0,
+        u: Vec3::new(),
+        v: Vec3::new(),
+        w: Vec3::new(),
+        defocus_disk_u: Vec3::new(),
+        defocus_disk_v: Vec3::new(),
+    };
+    cam.render(globe, file, 16);
 }
 fn perlin_spheres(file: &mut File) {
     let mut world = new_hittable_list();
@@ -204,6 +248,9 @@ fn perlin_spheres(file: &mut File) {
         width: 400,
         samples_per_pixel: 100,
         max_depth: 50,
+        background: Color {
+            e: [0.70, 0.80, 1.00],
+        },
 
         vfov: 20.0,
         lookfrom: Point3 {
@@ -228,44 +275,6 @@ fn perlin_spheres(file: &mut File) {
         defocus_disk_v: Vec3::new(),
     };
     cam.render(world, file, 16);
-}
-fn my_paint(file: &mut File) {
-    let path = "raytracer/src/paint2.jpg";
-    let texture = rtw_image::load_image_to_float_array(path);
-    let surface = Material::Lambertian {
-        tex: Box::new(texture),
-    };
-    let globe = build_sphere(Point3::new(), Vec3::new(), 2.0, surface, false);
-
-    let mut cam = Camera {
-        aspect_ratio: 16.0 / 9.0,
-        width: 400,
-        samples_per_pixel: 100,
-        max_depth: 50,
-
-        vfov: 20.0,
-        lookfrom: Point3 {
-            e: [0.0, 0.0, 12.0],
-        },
-        lookat: Point3 { e: [0.0, 0.0, 0.0] },
-        vup: Vec3 { e: [0.0, 1.0, 0.0] },
-
-        defocus_angle: 0.0,
-        focus_dist: 10.0,
-
-        height: 0,
-        camera_center: Vec3::new(),
-        pixel_loc: Vec3::new(),
-        delta_u: Vec3::new(),
-        delta_v: Vec3::new(),
-        pixel_samples_scale: 0.0,
-        u: Vec3::new(),
-        v: Vec3::new(),
-        w: Vec3::new(),
-        defocus_disk_u: Vec3::new(),
-        defocus_disk_v: Vec3::new(),
-    };
-    cam.render(globe, file, 16);
 }
 fn quads(file: &mut File) {
     let mut world = new_hittable_list();
@@ -344,6 +353,9 @@ fn quads(file: &mut File) {
         width: 400,
         samples_per_pixel: 100,
         max_depth: 50,
+        background: Color {
+            e: [0.70, 0.80, 1.00],
+        },
 
         vfov: 80.0,
         lookfrom: Point3 { e: [0.0, 0.0, 9.0] },
@@ -367,6 +379,74 @@ fn quads(file: &mut File) {
     };
     cam.render(world, file, 16);
 }
+fn simple_light(file: &mut File) {
+    let mut world = new_hittable_list();
+    let pertext = Box::new(Texture::Noisetexture {
+        noise: Box::new(Perlin::build_perlin()),
+        scale: 4.0,
+    });
+    world.add(build_sphere(
+        Point3 {
+            e: [0.0, -1000.0, 0.0],
+        },
+        Vec3::new(),
+        1000.0,
+        Material::Lambertian {
+            tex: pertext.clone(),
+        },
+        false,
+    ));
+    world.add(build_sphere(
+        Point3 { e: [0.0, 2.0, 0.0] },
+        Vec3::new(),
+        2.0,
+        Material::Lambertian { tex: pertext },
+        false,
+    ));
+
+    let difflight = Box::new(Texture::SolidColor {
+        albedo: Color { e: [4.0, 4.0, 4.0] },
+    });
+    world.add(build_quad(
+        Point3 {
+            e: [3.0, 1.0, -2.0],
+        },
+        Vec3 { e: [2.0, 0.0, 0.0] },
+        Vec3 { e: [0.0, 2.0, 0.0] },
+        Material::Diffuselight { tex: difflight },
+    ));
+    let mut cam = Camera {
+        aspect_ratio: 16.0 / 9.0,
+        width: 400,
+        samples_per_pixel: 100,
+        max_depth: 50,
+        background: Color::new(),
+
+        vfov: 20.0,
+        lookfrom: Point3 {
+            e: [26.0, 3.0, 6.0],
+        },
+        lookat: Point3 { e: [0.0, 2.0, 0.0] },
+        vup: Vec3 { e: [0.0, 1.0, 0.0] },
+
+        defocus_angle: 0.0,
+        focus_dist: 10.0,
+
+        height: 0,
+        camera_center: Vec3::new(),
+        pixel_loc: Vec3::new(),
+        delta_u: Vec3::new(),
+        delta_v: Vec3::new(),
+        pixel_samples_scale: 0.0,
+        u: Vec3::new(),
+        v: Vec3::new(),
+        w: Vec3::new(),
+        defocus_disk_u: Vec3::new(),
+        defocus_disk_v: Vec3::new(),
+    };
+    cam.render(world, file, 16);
+}
+
 fn main() {
     let path = Path::new("output/book1/image6.ppm");
     if let Some(parent) = path.parent() {
@@ -395,4 +475,11 @@ fn main() {
     }
     let mut file = File::create(path).unwrap();
     quads(&mut file);
+
+    let path = Path::new("output/book1/image9.ppm");
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).unwrap();
+    }
+    let mut file = File::create(path).unwrap();
+    simple_light(&mut file);
 }

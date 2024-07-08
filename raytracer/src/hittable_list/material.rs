@@ -1,6 +1,7 @@
 use crate::rtweekend::random_double_01;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Color;
+use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 
 use crate::hittable_list::hittable::HitRecord;
@@ -12,6 +13,7 @@ pub enum Material {
     Lambertian { tex: Box<Texture> },
     Metal { albedo: Color, fuzz: f64 },
     Dielectric { refraction_index: f64 },
+    Diffuselight { tex: Box<Texture> },
 }
 impl Material {
     /*    pub fn clone(&self) -> Material {
@@ -75,6 +77,17 @@ impl Material {
                 };
                 (Color { e: [1.0, 1.0, 1.0] }, scattered, true)
             }
+            Material::Diffuselight { tex: _ } => (Color::new(), Ray::new(), false),
+        }
+    }
+    pub fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
+        match self {
+            Material::Lambertian { tex: _ } => Color::new(),
+            Material::Metal { albedo: _, fuzz: _ } => Color::new(),
+            Material::Dielectric {
+                refraction_index: _,
+            } => Color::new(),
+            Material::Diffuselight { tex } => tex.value(u, v, p),
         }
     }
 }
