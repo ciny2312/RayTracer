@@ -11,7 +11,9 @@ use crate::camera::Camera;
 //use crate::hittable_list::HitObject;
 use crate::hittable_list::hittable::build_box;
 use crate::hittable_list::hittable::build_quad;
+use crate::hittable_list::hittable::build_rotate;
 use crate::hittable_list::hittable::build_sphere;
+use crate::hittable_list::hittable::build_translate;
 use crate::hittable_list::hittable::bvh_node;
 use crate::hittable_list::hittable::new_hittable_list;
 use crate::hittable_list::material::Material;
@@ -395,24 +397,36 @@ fn cornell_box(file: &mut File) {
         },
         white.clone(),
     ));
-    world.add(build_box(
-        &Point3 {
-            e: [130.0, 0.0, 65.0],
-        },
+    let box1 = build_box(
+        &Point3 { e: [0.0, 0.0, 0.0] },
         &Vec3 {
-            e: [295.0, 165.0, 230.0],
+            e: [165.0, 330.0, 165.0],
         },
         &white,
-    ));
-    world.add(build_box(
-        &Point3 {
+    );
+    let box1 = build_rotate(&box1, 15.0);
+    world.add(build_translate(
+        &box1,
+        Vec3 {
             e: [265.0, 0.0, 295.0],
         },
+    ));
+
+    let box2 = build_box(
+        &Point3 { e: [0.0, 0.0, 0.0] },
         &Vec3 {
-            e: [430.0, 330.0, 460.0],
+            e: [165.0, 165.0, 165.0],
         },
         &white,
+    );
+    let box2 = build_rotate(&box2, -18.0);
+    world.add(build_translate(
+        &box2,
+        Vec3 {
+            e: [130.0, 0.0, 65.0],
+        },
     ));
+
     let mut cam = Camera {
         aspect_ratio: 1.0,
         width: 600,

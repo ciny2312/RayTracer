@@ -1,11 +1,13 @@
 use std::cmp::Ordering;
 
 //use crate::rtweekend::interval::Interval;
+use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::interval::Interval;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
+use crate::rtweekend::INF;
 //use crate::hittable_list::material::Lambertian;
 //use crate::aabb::Aabb;
 use crate::aabb::merge;
@@ -241,4 +243,55 @@ pub fn build_box(a: &Point3, b: &Point3, mat: &Material) -> HitObject {
         mat.clone(),
     ));
     sides
+}
+pub fn build_translate(object: &HitObject, offset: Vec3) -> HitObject {
+    let pre = object.bounding_box();
+    let mut bbox = crate::aabb::EMPTY;
+    for i in 0..3 {
+        bbox.b[i] = Interval {
+            min: pre.b[i].min + offset.e[i],
+            max: pre.b[i].max + offset.e[i],
+        };
+    }
+    HitObject::Translate {
+        object: Box::new(object.clone()),
+        offset,
+        bbox,
+    }
+}
+pub fn build_rotate(object: &HitObject, angle: f64) -> HitObject {
+    let radians = degrees_to_radians(angle);
+    let sin_theta = radians.sin();
+    let cos_theta = radians.cos();
+    let bbox = object.bounding_box();
+
+    let mut min = Point3 { e: [INF, INF, INF] };
+    let mut max = Point3 {
+        e: [-INF, -INF, -INF],
+    };
+
+    for i in 0..2 {
+        for j in 0..2 {
+            for k in 0..2 {
+                let x = i as f64 * bbox.b[0].max + (1 - i) as f64 * bbox.b[0].min;
+                let y = j as f64 * bbox.b[1].max + (1 - j) as f64 * bbox.b[1].min;
+                let z = k as f64 * bbox.b[2].max + (1 - k) as f64 * bbox.b[2].min;
+
+                let newx = cos_theta * x + sin_theta * z;
+                let newz = -sin_theta * x + cos_theta * z;
+
+                let tester = Vec3 { e: [newx, y, newz] };
+                for c in 0..3 {
+                    min.e[c] = min.e[c].min(tester.e[c]);
+                    max.e[c] = max.e[c].max(tester.e[c]);
+                }
+            }
+        }
+    }
+    HitObject::Rotate {
+        object: Box::new(object.clone()),
+        sin_theta,
+        cos_theta,
+        bbox: point_to_aabb(&min, &max),
+    }
 }

@@ -44,6 +44,17 @@ pub enum HitObject {
         objects: Vec<HitObject>,
         bbox: Aabb,
     },
+    Translate {
+        object: Box<HitObject>,
+        offset: Vec3,
+        bbox: Aabb,
+    },
+    Rotate {
+        object: Box<HitObject>,
+        sin_theta: f64,
+        cos_theta: f64,
+        bbox: Aabb,
+    },
 }
 
 impl HitObject {
@@ -73,6 +84,17 @@ impl HitObject {
                 bbox,
             } => bbox.clone(),
             HitObject::HittableList { objects: _, bbox } => bbox.clone(),
+            HitObject::Translate {
+                object: _,
+                offset: _,
+                bbox,
+            } => bbox.clone(),
+            HitObject::Rotate {
+                object: _,
+                sin_theta: _,
+                cos_theta: _,
+                bbox,
+            } => bbox.clone(),
         }
     }
     pub fn get_objects(&self) -> Vec<HitObject> {
@@ -101,6 +123,17 @@ impl HitObject {
                 bbox: _,
             } => Vec::new(),
             HitObject::HittableList { objects, bbox: _ } => objects.clone(),
+            HitObject::Translate {
+                object: _,
+                offset: _,
+                bbox: _,
+            } => Vec::new(),
+            HitObject::Rotate {
+                object: _,
+                sin_theta: _,
+                cos_theta: _,
+                bbox: _,
+            } => Vec::new(),
         }
     }
     fn cur_center(&self, time: f64) -> Point3 {
@@ -130,6 +163,17 @@ impl HitObject {
             } => Vec3::new(),
             HitObject::HittableList {
                 objects: _,
+                bbox: _,
+            } => Vec3::new(),
+            HitObject::Translate {
+                object: _,
+                offset: _,
+                bbox: _,
+            } => Vec3::new(),
+            HitObject::Rotate {
+                object: _,
+                sin_theta: _,
+                cos_theta: _,
                 bbox: _,
             } => Vec3::new(),
         }
@@ -245,6 +289,57 @@ impl HitObject {
                 }
                 (rec, hit_anything)
             }
+            HitObject::Translate {
+                object,
+                offset,
+                bbox: _,
+            } => {
+                let offset_r = Ray {
+                    ori: r.ori - *offset,
+                    dir: r.dir,
+                    tm: r.tm,
+                };
+                let (rec, flag) = object.hit(&offset_r, ray_t);
+                if !flag {
+                    return (rec, flag);
+                }
+                let mut rec_without_offset = rec;
+                rec_without_offset.p = rec_without_offset.p + *offset;
+                (rec_without_offset, true)
+            }
+            HitObject::Rotate {
+                object,
+                sin_theta,
+                cos_theta,
+                bbox: _,
+            } => {
+                let mut ori = r.ori;
+                let mut dir = r.dir;
+                ori.e[0] = cos_theta * r.ori.e[0] - sin_theta * r.ori.e[2];
+                ori.e[2] = sin_theta * r.ori.e[0] + cos_theta * r.ori.e[2];
+                dir.e[0] = cos_theta * r.dir.e[0] - sin_theta * r.dir.e[2];
+                dir.e[2] = sin_theta * r.dir.e[0] + cos_theta * r.dir.e[2];
+
+                let rotated_r = Ray { ori, dir, tm: r.tm };
+
+                let (rec, flag) = object.hit(&rotated_r, ray_t);
+                if !flag {
+                    return (rec, flag);
+                }
+                let mut p = rec.p;
+                p.e[0] = cos_theta * rec.p.e[0] + sin_theta * rec.p.e[2];
+                p.e[2] = -sin_theta * rec.p.e[0] + cos_theta * rec.p.e[2];
+
+                let mut normal = rec.normal;
+                normal.e[0] = cos_theta * rec.normal.e[0] + sin_theta * rec.normal.e[2];
+                normal.e[2] = -sin_theta * rec.normal.e[0] + cos_theta * rec.normal.e[2];
+
+                let mut rec_cur = rec;
+                rec_cur.p = p;
+                rec_cur.normal = normal;
+
+                (rec_cur, true)
+            }
         }
     }
     pub fn add(&mut self, object: HitObject) {
@@ -276,6 +371,17 @@ impl HitObject {
                 objects.push(object.clone());
                 *bbox = merge(bbox, &object.bounding_box());
             }
+            HitObject::Translate {
+                object: _,
+                offset: _,
+                bbox: _,
+            } => (),
+            HitObject::Rotate {
+                object: _,
+                sin_theta: _,
+                cos_theta: _,
+                bbox: _,
+            } => (),
         }
     }
     /*    pub fn clone(&self) -> HitObject {
