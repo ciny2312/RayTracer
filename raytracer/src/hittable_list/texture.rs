@@ -16,7 +16,7 @@ pub enum Texture {
         odd: Box<Texture>,
     },
     Imagetexture {
-        image: RtwImage,
+        image: Box<RtwImage>,
     },
     Noisetexture {
         noise: Box<Perlin>,

@@ -13,7 +13,7 @@ use crate::rtweekend::INF;
 use crate::aabb::merge;
 use crate::aabb::point_to_aabb;
 use crate::hittable_list::material::Material;
-use crate::hittable_list::texture::Texture::SolidColor;
+use crate::hittable_list::texture::Texture;
 use crate::hittable_list::HitObject;
 //use crate::hittable_list::texture::Texture::CheckerTexture;
 
@@ -45,7 +45,7 @@ impl HitRecord {
             v: 0.0,
             front_face: false,
             mat: Material::Lambertian {
-                tex: Box::new(SolidColor {
+                tex: Box::new(Texture::SolidColor {
                     albedo: Color::new(),
                 }),
             },
@@ -293,5 +293,14 @@ pub fn build_rotate(object: &HitObject, angle: f64) -> HitObject {
         sin_theta,
         cos_theta,
         bbox: point_to_aabb(&min, &max),
+    }
+}
+pub fn build_constant_medium(boundary: &HitObject, density: f64, tex: &Texture) -> HitObject {
+    HitObject::ConstantMedium {
+        boundary: Box::new(boundary.clone()),
+        neg_inv_density: -1.0 / density,
+        phase_function: Material::ISotropic {
+            tex: Box::new(tex.clone()),
+        },
     }
 }

@@ -36,7 +36,7 @@ pub const EMPTY: Interval = Interval {
     min: INF,
     max: -INF,
 };
-pub const _UNIVERSE: Interval = Interval {
+pub const UNIVERSE: Interval = Interval {
     min: -INF,
     max: INF,
 };

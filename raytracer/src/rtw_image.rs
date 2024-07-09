@@ -28,10 +28,10 @@ pub fn load_image_to_float_array<P: AsRef<Path>>(path: P) -> Texture {
         float_pixels.push([r, g, b]);
     }
     Texture::Imagetexture {
-        image: RtwImage {
+        image: Box::new(RtwImage {
             width,
             height,
             float_pixels,
-        },
+        }),
     }
 }

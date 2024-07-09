@@ -10,6 +10,7 @@ use std::path::Path;
 use crate::camera::Camera;
 //use crate::hittable_list::HitObject;
 use crate::hittable_list::hittable::build_box;
+use crate::hittable_list::hittable::build_constant_medium;
 use crate::hittable_list::hittable::build_quad;
 use crate::hittable_list::hittable::build_rotate;
 use crate::hittable_list::hittable::build_sphere;
@@ -323,9 +324,7 @@ fn cornell_box(file: &mut File) {
     };
     let light = Material::Diffuselight {
         tex: Box::new(SolidColor {
-            albedo: Color {
-                e: [15.0, 15.0, 15.0],
-            },
+            albedo: Color { e: [7.0, 7.0, 7.0] },
         }),
     };
 
@@ -353,13 +352,13 @@ fn cornell_box(file: &mut File) {
     ));
     world.add(build_quad(
         Point3 {
-            e: [343.0, 554.0, 332.0],
+            e: [113.0, 554.0, 127.0],
         },
         Vec3 {
-            e: [-130.0, 0.0, 0.0],
+            e: [330.0, 0.0, 0.0],
         },
         Vec3 {
-            e: [0.0, 0.0, -105.0],
+            e: [0.0, 0.0, 305.0],
         },
         light,
     ));
@@ -405,10 +404,17 @@ fn cornell_box(file: &mut File) {
         &white,
     );
     let box1 = build_rotate(&box1, 15.0);
-    world.add(build_translate(
+    let box1 = build_translate(
         &box1,
         Vec3 {
             e: [265.0, 0.0, 295.0],
+        },
+    );
+    world.add(build_constant_medium(
+        &box1,
+        0.01,
+        &Texture::SolidColor {
+            albedo: Color::new(),
         },
     ));
 
@@ -420,10 +426,17 @@ fn cornell_box(file: &mut File) {
         &white,
     );
     let box2 = build_rotate(&box2, -18.0);
-    world.add(build_translate(
+    let box2 = build_translate(
         &box2,
         Vec3 {
             e: [130.0, 0.0, 65.0],
+        },
+    );
+    world.add(build_constant_medium(
+        &box2,
+        0.01,
+        &Texture::SolidColor {
+            albedo: Color { e: [1.0, 1.0, 1.0] },
         },
     ));
 

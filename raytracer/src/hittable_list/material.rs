@@ -14,6 +14,7 @@ pub enum Material {
     Metal { albedo: Color, fuzz: f64 },
     Dielectric { refraction_index: f64 },
     Diffuselight { tex: Box<Texture> },
+    ISotropic { tex: Box<Texture> },
 }
 impl Material {
     /*    pub fn clone(&self) -> Material {
@@ -78,8 +79,18 @@ impl Material {
                 (Color { e: [1.0, 1.0, 1.0] }, scattered, true)
             }
             Material::Diffuselight { tex: _ } => (Color::new(), Ray::new(), false),
+            Material::ISotropic { tex } => (
+                tex.value(rec.u, rec.v, &rec.p),
+                Ray {
+                    ori: rec.p,
+                    dir: Vec3::random_unit_vector(),
+                    tm: r_in.tm,
+                },
+                true,
+            ),
         }
     }
+
     pub fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
         match self {
             Material::Lambertian { tex: _ } => Color::new(),
@@ -88,6 +99,7 @@ impl Material {
                 refraction_index: _,
             } => Color::new(),
             Material::Diffuselight { tex } => tex.value(u, v, p),
+            Material::ISotropic { tex: _ } => Color::new(),
         }
     }
 }

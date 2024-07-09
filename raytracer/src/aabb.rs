@@ -13,11 +13,7 @@ pub const EMPTY: Aabb = Aabb {
     b: [interval::EMPTY, interval::EMPTY, interval::EMPTY],
 };
 pub const _UNIVERSE: Aabb = Aabb {
-    b: [
-        interval::_UNIVERSE,
-        interval::_UNIVERSE,
-        interval::_UNIVERSE,
-    ],
+    b: [interval::UNIVERSE, interval::UNIVERSE, interval::UNIVERSE],
 };
 impl Aabb {
     pub fn pad_to_minimums(&mut self) {

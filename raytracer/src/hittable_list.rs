@@ -7,8 +7,10 @@ use crate::aabb::merge;
 use crate::aabb::Aabb;
 //use crate::aabb::point_to_aabb;
 use crate::rtweekend::interval::Interval;
+use crate::rtweekend::random_double_01;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Point3;
+use crate::rtweekend::INF;
 //use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Vec3;
 use hittable::HitRecord;
@@ -55,6 +57,11 @@ pub enum HitObject {
         cos_theta: f64,
         bbox: Aabb,
     },
+    ConstantMedium {
+        boundary: Box<HitObject>,
+        neg_inv_density: f64,
+        phase_function: Material,
+    },
 }
 
 impl HitObject {
@@ -95,6 +102,11 @@ impl HitObject {
                 cos_theta: _,
                 bbox,
             } => bbox.clone(),
+            HitObject::ConstantMedium {
+                boundary,
+                neg_inv_density: _,
+                phase_function: _,
+            } => boundary.bounding_box(),
         }
     }
     pub fn get_objects(&self) -> Vec<HitObject> {
@@ -133,6 +145,11 @@ impl HitObject {
                 sin_theta: _,
                 cos_theta: _,
                 bbox: _,
+            } => Vec::new(),
+            HitObject::ConstantMedium {
+                boundary: _,
+                neg_inv_density: _,
+                phase_function: _,
             } => Vec::new(),
         }
     }
@@ -175,6 +192,11 @@ impl HitObject {
                 sin_theta: _,
                 cos_theta: _,
                 bbox: _,
+            } => Vec3::new(),
+            HitObject::ConstantMedium {
+                boundary: _,
+                neg_inv_density: _,
+                phase_function: _,
             } => Vec3::new(),
         }
     }
@@ -340,6 +362,58 @@ impl HitObject {
 
                 (rec_cur, true)
             }
+            HitObject::ConstantMedium {
+                boundary,
+                neg_inv_density,
+                phase_function,
+            } => {
+                let enable_debug = false;
+                let _debugging = enable_debug && random_double_01() < 0.00001;
+                let (mut rec1, flag) = boundary.hit(r, &crate::rtweekend::interval::UNIVERSE);
+                if !flag {
+                    return (rec1, flag);
+                }
+                let (mut rec2, flag) = boundary.hit(
+                    r,
+                    &Interval {
+                        min: rec1.t + 0.0001,
+                        max: INF,
+                    },
+                );
+                if !flag {
+                    return (rec2, flag);
+                }
+                if rec1.t < ray_t.min {
+                    rec1.t = ray_t.min;
+                }
+                if rec2.t > ray_t.max {
+                    rec2.t = ray_t.max;
+                }
+                if rec1.t >= rec2.t {
+                    return (rec1, false);
+                }
+                if rec1.t < 0.0 {
+                    rec1.t = 0.0;
+                }
+                let ray_length = r.dir.length();
+                let distance_inside_boundary = (rec2.t - rec1.t) * ray_length;
+                let hit_distance = neg_inv_density * random_double_01().ln();
+                if hit_distance > distance_inside_boundary {
+                    return (rec1, false);
+                }
+                (
+                    HitRecord {
+                        t: rec1.t + hit_distance / ray_length,
+                        p: r.at(rec1.t + hit_distance / ray_length),
+                        normal: Vec3 { e: [1.0, 0.0, 0.0] },
+                        front_face: true,
+                        mat: phase_function.clone(),
+                        u: 0.0,
+                        v: 0.0,
+                    },
+                    true,
+                )
+            }
         }
     }
     pub fn add(&mut self, object: HitObject) {
@@ -381,6 +455,11 @@ impl HitObject {
                 sin_theta: _,
                 cos_theta: _,
                 bbox: _,
+            } => (),
+            HitObject::ConstantMedium {
+                boundary: _,
+                neg_inv_density: _,
+                phase_function: _,
             } => (),
         }
     }
