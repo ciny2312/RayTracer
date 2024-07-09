@@ -107,7 +107,7 @@ impl Vec3 {
     }
 }
 impl Vec3 {
-    pub fn random_01() -> Vec3 {
+    pub fn _random_01() -> Vec3 {
         Vec3 {
             e: [random_double_01(), random_double_01(), random_double_01()],
         }

@@ -27,287 +27,171 @@ use crate::hittable_list::texture::Texture;
 use crate::hittable_list::texture::Texture::SolidColor;
 
 use crate::rtweekend::random_double;
-use crate::rtweekend::random_double_01;
+//use crate::rtweekend::random_double_01;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 //use crate::sphere::Sphere;
-fn bouncing_spheres(file: &mut File) {
-    let mut world = new_hittable_list();
-    let checker = Texture::Checkertexture {
-        inv_scale: 1.0 / 0.32,
-        even: Box::new(SolidColor {
-            albedo: Color { e: [0.2, 0.3, 0.1] },
-        }),
-        odd: Box::new(SolidColor {
-            albedo: Color { e: [0.9, 0.9, 0.9] },
+
+fn final_scene(file: &mut File) {
+    let mut boxes1 = new_hittable_list();
+    let ground = Material::Lambertian {
+        tex: Box::new(Texture::SolidColor {
+            albedo: Color {
+                e: [0.48, 0.83, 0.53],
+            },
         }),
     };
-    let material_ground = Material::Lambertian {
-        tex: Box::new(checker),
-    };
-    world.add(build_sphere(
-        Point3 {
-            e: [0.0, -1000.0, -1.0],
-        },
-        Vec3::new(),
-        1000.0,
-        material_ground,
-        false,
-    ));
+    let boxes_per_side = 20;
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let w = 100.0;
+            let x0 = -1000.0 + i as f64 * w;
+            let z0 = -1000.0 + j as f64 * w;
+            let y0 = 0.0;
+            let x1 = x0 + w;
+            let y1 = random_double(1.0, 101.0);
+            let z1 = z0 + w;
 
-    for a in -11..11 {
-        for b in -11..11 {
-            let choose_mat = random_double_01();
-            let center = Point3 {
-                e: [
-                    a as f64 + 0.9 * random_double_01(),
-                    0.2,
-                    b as f64 + 0.9 * random_double_01(),
-                ],
-            };
-            if (center - Point3 { e: [4.0, 0.2, 0.0] }).length() > 0.9 {
-                if choose_mat < 0.8 {
-                    let albedo = Vec3::random_01() * Vec3::random_01();
-
-                    world.add(build_sphere(
-                        center,
-                        Vec3 {
-                            e: [0.0, random_double(0.0, 0.5), 0.0],
-                        },
-                        0.2,
-                        Material::Lambertian {
-                            tex: Box::new(SolidColor { albedo }),
-                        },
-                        true,
-                    ));
-                //    dbg!("ball1");
-                } else if choose_mat < 0.95 {
-                    let albedo = Vec3::random(0.5, 1.0);
-                    let fuzz = rtweekend::random_double(0.0, 0.5);
-                    world.add(build_sphere(
-                        center,
-                        Vec3::new(),
-                        0.2,
-                        Material::Metal { albedo, fuzz },
-                        false,
-                    ));
-                //    dbg!("ball2");
-                } else {
-                    world.add(build_sphere(
-                        center,
-                        Vec3::new(),
-                        0.2,
-                        Material::Dielectric {
-                            refraction_index: 1.5,
-                        },
-                        false,
-                    ));
-                    //    dbg!("ball3");
-                }
-            }
+            boxes1.add(build_box(
+                &Point3 { e: [x0, y0, z0] },
+                &Point3 { e: [x1, y1, z1] },
+                &ground,
+            ));
         }
     }
-    let material1 = Material::Dielectric {
-        refraction_index: 1.5,
-    };
-    world.add(build_sphere(
-        Point3 { e: [0.0, 1.0, 0.0] },
-        Vec3::new(),
-        1.0,
-        material1,
-        false,
-    ));
-    let material2 = Material::Lambertian {
+
+    let mut world = new_hittable_list();
+
+    let mut objects = boxes1.get_objects();
+    let size = objects.len();
+    world.add(bvh_node(&mut objects, 0, size));
+    let light = Material::Diffuselight {
         tex: Box::new(SolidColor {
-            albedo: Color { e: [0.4, 0.2, 0.1] },
+            albedo: Color { e: [7.0, 7.0, 7.0] },
+        }),
+    };
+    world.add(build_quad(
+        Point3 {
+            e: [123.0, 554.0, 147.0],
+        },
+        Vec3 {
+            e: [300.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, 265.0],
+        },
+        light,
+    ));
+    let center1 = Point3 {
+        e: [400.0, 400.0, 200.0],
+    };
+    let sphere_material = Material::Lambertian {
+        tex: Box::new(SolidColor {
+            albedo: Color { e: [0.7, 0.3, 0.1] },
         }),
     };
     world.add(build_sphere(
-        Point3 {
-            e: [-4.0, 1.0, 0.0],
+        center1,
+        Vec3 {
+            e: [30.0, 0.0, 0.0],
         },
-        Vec3::new(),
-        1.0,
-        material2,
-        false,
+        50.0,
+        sphere_material,
+        true,
     ));
-    let material3 = Material::Metal {
-        albedo: Color { e: [0.7, 0.6, 0.5] },
-        fuzz: 0.0,
-    };
     world.add(build_sphere(
-        Point3 { e: [4.0, 1.0, 0.0] },
+        Point3 {
+            e: [260.0, 150.0, 45.0],
+        },
         Vec3::new(),
-        1.0,
-        material3,
+        50.0,
+        Material::Dielectric {
+            refraction_index: 1.5,
+        },
+        false,
+    ));
+    world.add(build_sphere(
+        Point3 {
+            e: [0.0, 150.0, 145.0],
+        },
+        Vec3::new(),
+        50.0,
+        Material::Metal {
+            albedo: Color { e: [0.8, 0.8, 0.9] },
+            fuzz: 1.0,
+        },
         false,
     ));
 
-    let mut objects = world.get_objects();
-    let size = objects.len();
-    let bvh_root = bvh_node(&mut objects, 0, size);
-    //    dbg!(bvh_root.clone());
-    let mut cam = Camera {
-        aspect_ratio: 16.0 / 9.0,
-        width: 400,
-        samples_per_pixel: 100,
-        max_depth: 50,
-        background: Color {
-            e: [0.70, 0.80, 1.00],
+    let boundary = build_sphere(
+        Point3 {
+            e: [360.0, 150.0, 145.0],
         },
-
-        vfov: 20.0,
-        lookfrom: Point3 {
-            e: [13.0, 2.0, 3.0],
+        Vec3::new(),
+        70.0,
+        Material::Dielectric {
+            refraction_index: 1.5,
         },
-        lookat: Point3 { e: [0.0, 0.0, 0.0] },
-        vup: Vec3 { e: [0.0, 1.0, 0.0] },
+        false,
+    );
+    world.add(build_constant_medium(
+        &boundary,
+        0.2,
+        &Texture::SolidColor {
+            albedo: Color { e: [0.2, 0.4, 0.9] },
+        },
+    ));
+    world.add(boundary);
 
-        defocus_angle: 0.6,
-        focus_dist: 10.0,
+    let boundary = build_sphere(
+        Point3 { e: [0.0, 0.0, 0.0] },
+        Vec3::new(),
+        5000.0,
+        Material::Dielectric {
+            refraction_index: 1.5,
+        },
+        false,
+    );
+    world.add(build_constant_medium(
+        &boundary,
+        0.0001,
+        &Texture::SolidColor {
+            albedo: Color { e: [1.0, 1.0, 1.0] },
+        },
+    ));
 
-        height: 0,
-        camera_center: Vec3::new(),
-        pixel_loc: Vec3::new(),
-        delta_u: Vec3::new(),
-        delta_v: Vec3::new(),
-        pixel_samples_scale: 0.0,
-        u: Vec3::new(),
-        v: Vec3::new(),
-        w: Vec3::new(),
-        defocus_disk_u: Vec3::new(),
-        defocus_disk_v: Vec3::new(),
-    };
-    cam.render(bvh_root, file, 16);
-}
-fn my_paint(file: &mut File) {
     let path = "raytracer/src/paint2.jpg";
     let texture = rtw_image::load_image_to_float_array(path);
     let surface = Material::Lambertian {
         tex: Box::new(texture),
     };
-    let globe = build_sphere(Point3::new(), Vec3::new(), 2.0, surface, false);
-
-    let mut cam = Camera {
-        aspect_ratio: 16.0 / 9.0,
-        width: 400,
-        samples_per_pixel: 100,
-        max_depth: 50,
-        background: Color {
-            e: [0.70, 0.80, 1.00],
+    world.add(build_sphere(
+        Point3 {
+            e: [400.0, 200.0, 400.0],
         },
-
-        vfov: 20.0,
-        lookfrom: Point3 {
-            e: [0.0, 0.0, 12.0],
-        },
-        lookat: Point3 { e: [0.0, 0.0, 0.0] },
-        vup: Vec3 { e: [0.0, 1.0, 0.0] },
-
-        defocus_angle: 0.0,
-        focus_dist: 10.0,
-
-        height: 0,
-        camera_center: Vec3::new(),
-        pixel_loc: Vec3::new(),
-        delta_u: Vec3::new(),
-        delta_v: Vec3::new(),
-        pixel_samples_scale: 0.0,
-        u: Vec3::new(),
-        v: Vec3::new(),
-        w: Vec3::new(),
-        defocus_disk_u: Vec3::new(),
-        defocus_disk_v: Vec3::new(),
-    };
-    cam.render(globe, file, 16);
-}
-fn simple_light(file: &mut File) {
-    let mut world = new_hittable_list();
-    let pertext = Box::new(Texture::Noisetexture {
+        Vec3::new(),
+        100.0,
+        surface,
+        false,
+    ));
+    let pertext = Texture::Noisetexture {
         noise: Box::new(Perlin::build_perlin()),
-        scale: 4.0,
-    });
+        scale: 0.2,
+    };
     world.add(build_sphere(
         Point3 {
-            e: [0.0, -1000.0, 0.0],
+            e: [220.0, 280.0, 300.0],
         },
         Vec3::new(),
-        1000.0,
+        80.0,
         Material::Lambertian {
-            tex: pertext.clone(),
+            tex: Box::new(pertext),
         },
         false,
     ));
-    world.add(build_sphere(
-        Point3 { e: [0.0, 2.0, 0.0] },
-        Vec3::new(),
-        2.0,
-        Material::Lambertian { tex: pertext },
-        false,
-    ));
 
-    let difflight = Box::new(Texture::SolidColor {
-        albedo: Color { e: [4.0, 4.0, 4.0] },
-    });
-    world.add(build_quad(
-        Point3 {
-            e: [3.0, 1.0, -2.0],
-        },
-        Vec3 { e: [2.0, 0.0, 0.0] },
-        Vec3 { e: [0.0, 2.0, 0.0] },
-        Material::Diffuselight {
-            tex: difflight.clone(),
-        },
-    ));
-    world.add(build_sphere(
-        Point3 { e: [0.0, 7.0, 0.0] },
-        Vec3::new(),
-        2.0,
-        Material::Diffuselight { tex: difflight },
-        false,
-    ));
-    let mut cam = Camera {
-        aspect_ratio: 16.0 / 9.0,
-        width: 400,
-        samples_per_pixel: 100,
-        max_depth: 50,
-        background: Color::new(),
-
-        vfov: 20.0,
-        lookfrom: Point3 {
-            e: [26.0, 3.0, 6.0],
-        },
-        lookat: Point3 { e: [0.0, 2.0, 0.0] },
-        vup: Vec3 { e: [0.0, 1.0, 0.0] },
-
-        defocus_angle: 0.0,
-        focus_dist: 10.0,
-
-        height: 0,
-        camera_center: Vec3::new(),
-        pixel_loc: Vec3::new(),
-        delta_u: Vec3::new(),
-        delta_v: Vec3::new(),
-        pixel_samples_scale: 0.0,
-        u: Vec3::new(),
-        v: Vec3::new(),
-        w: Vec3::new(),
-        defocus_disk_u: Vec3::new(),
-        defocus_disk_v: Vec3::new(),
-    };
-    cam.render(world, file, 16);
-}
-fn cornell_box(file: &mut File) {
-    let mut world = new_hittable_list();
-
-    let red = Material::Lambertian {
-        tex: Box::new(SolidColor {
-            albedo: Color {
-                e: [0.65, 0.05, 0.05],
-            },
-        }),
-    };
+    let mut boxes2 = new_hittable_list();
     let white = Material::Lambertian {
         tex: Box::new(SolidColor {
             albedo: Color {
@@ -315,141 +199,34 @@ fn cornell_box(file: &mut File) {
             },
         }),
     };
-    let green = Material::Lambertian {
-        tex: Box::new(SolidColor {
-            albedo: Color {
-                e: [0.12, 0.45, 0.15],
-            },
-        }),
-    };
-    let light = Material::Diffuselight {
-        tex: Box::new(SolidColor {
-            albedo: Color { e: [7.0, 7.0, 7.0] },
-        }),
-    };
-
-    world.add(build_quad(
-        Point3 {
-            e: [555.0, 0.0, 0.0],
-        },
+    for _j in 0..1000 {
+        boxes2.add(build_sphere(
+            Point3::random(0.0, 165.0),
+            Vec3::new(),
+            10.0,
+            white.clone(),
+            false,
+        ));
+    }
+    let mut objects = boxes2.get_objects();
+    let size = objects.len();
+    world.add(build_translate(
+        &build_rotate(&bvh_node(&mut objects, 0, size), 15.0),
         Vec3 {
-            e: [0.0, 555.0, 0.0],
-        },
-        Vec3 {
-            e: [0.0, 0.0, 555.0],
-        },
-        green,
-    ));
-    world.add(build_quad(
-        Point3 { e: [0.0, 0.0, 0.0] },
-        Vec3 {
-            e: [0.0, 555.0, 0.0],
-        },
-        Vec3 {
-            e: [0.0, 0.0, 555.0],
-        },
-        red,
-    ));
-    world.add(build_quad(
-        Point3 {
-            e: [113.0, 554.0, 127.0],
-        },
-        Vec3 {
-            e: [330.0, 0.0, 0.0],
-        },
-        Vec3 {
-            e: [0.0, 0.0, 305.0],
-        },
-        light,
-    ));
-    world.add(build_quad(
-        Point3 { e: [0.0, 0.0, 0.0] },
-        Vec3 {
-            e: [555.0, 0.0, 0.0],
-        },
-        Vec3 {
-            e: [0.0, 0.0, 555.0],
-        },
-        white.clone(),
-    ));
-    world.add(build_quad(
-        Point3 {
-            e: [555.0, 555.0, 555.0],
-        },
-        Vec3 {
-            e: [-555.0, 0.0, 0.0],
-        },
-        Vec3 {
-            e: [0.0, 0.0, -555.0],
-        },
-        white.clone(),
-    ));
-    world.add(build_quad(
-        Point3 {
-            e: [0.0, 0.0, 555.0],
-        },
-        Vec3 {
-            e: [555.0, 0.0, 0.0],
-        },
-        Vec3 {
-            e: [0.0, 555.0, 0.0],
-        },
-        white.clone(),
-    ));
-    let box1 = build_box(
-        &Point3 { e: [0.0, 0.0, 0.0] },
-        &Vec3 {
-            e: [165.0, 330.0, 165.0],
-        },
-        &white,
-    );
-    let box1 = build_rotate(&box1, 15.0);
-    let box1 = build_translate(
-        &box1,
-        Vec3 {
-            e: [265.0, 0.0, 295.0],
-        },
-    );
-    world.add(build_constant_medium(
-        &box1,
-        0.01,
-        &Texture::SolidColor {
-            albedo: Color::new(),
-        },
-    ));
-
-    let box2 = build_box(
-        &Point3 { e: [0.0, 0.0, 0.0] },
-        &Vec3 {
-            e: [165.0, 165.0, 165.0],
-        },
-        &white,
-    );
-    let box2 = build_rotate(&box2, -18.0);
-    let box2 = build_translate(
-        &box2,
-        Vec3 {
-            e: [130.0, 0.0, 65.0],
-        },
-    );
-    world.add(build_constant_medium(
-        &box2,
-        0.01,
-        &Texture::SolidColor {
-            albedo: Color { e: [1.0, 1.0, 1.0] },
+            e: [-100.0, 270.0, 395.0],
         },
     ));
 
     let mut cam = Camera {
         aspect_ratio: 1.0,
-        width: 600,
-        samples_per_pixel: 200,
-        max_depth: 50,
+        width: 800,
+        samples_per_pixel: 10000,
+        max_depth: 40,
         background: Color::new(),
 
         vfov: 40.0,
         lookfrom: Point3 {
-            e: [278.0, 278.0, -800.0],
+            e: [478.0, 278.0, -600.0],
         },
         lookat: Point3 {
             e: [278.0, 278.0, 0.0],
@@ -478,30 +255,10 @@ fn cornell_box(file: &mut File) {
 }
 
 fn main() {
-    let path = Path::new("output/book1/image6.ppm");
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).unwrap();
-    }
-    let mut file = File::create(path).unwrap();
-    bouncing_spheres(&mut file);
-
-    let path = Path::new("output/book1/image7.ppm");
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).unwrap();
-    }
-    let mut file = File::create(path).unwrap();
-    my_paint(&mut file);
-
-    let path = Path::new("output/book1/image9.ppm");
-    if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).unwrap();
-    }
-    let mut file = File::create(path).unwrap();
-    simple_light(&mut file);
     let path = Path::new("output/book1/image10.ppm");
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
-    cornell_box(&mut file);
+    final_scene(&mut file);
 }

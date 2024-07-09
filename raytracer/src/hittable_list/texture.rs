@@ -7,27 +7,20 @@ use crate::hittable_list::perlin::Perlin;
 
 #[derive(Clone, Debug)]
 pub enum Texture {
-    SolidColor {
-        albedo: Color,
-    },
-    Checkertexture {
+    SolidColor { albedo: Color },
+    /*    Checkertexture {
         inv_scale: f64,
         even: Box<Texture>,
         odd: Box<Texture>,
-    },
-    Imagetexture {
-        image: Box<RtwImage>,
-    },
-    Noisetexture {
-        noise: Box<Perlin>,
-        scale: f64,
-    },
+    },*/
+    Imagetexture { image: Box<RtwImage> },
+    Noisetexture { noise: Box<Perlin>, scale: f64 },
 }
 impl Texture {
     pub fn value(&self, u: f64, v: f64, p: &Point3) -> Color {
         match self {
             Texture::SolidColor { albedo } => *albedo,
-            Texture::Checkertexture {
+            /*    Texture::Checkertexture {
                 inv_scale,
                 even,
                 odd,
@@ -42,7 +35,7 @@ impl Texture {
                 } else {
                     odd.value(u, v, p)
                 }
-            }
+            }*/
             Texture::Imagetexture { image } => {
                 let interval = Interval { min: 0.0, max: 1.0 };
                 let u = interval.clamp(u);
