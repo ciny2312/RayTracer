@@ -220,7 +220,7 @@ fn final_scene(file: &mut File) {
     let mut cam = Camera {
         aspect_ratio: 1.0,
         width: 800,
-        samples_per_pixel: 10000,
+        samples_per_pixel: 5000,
         max_depth: 40,
         background: Color::new(),
 
@@ -261,4 +261,169 @@ fn main() {
     }
     let mut file = File::create(path).unwrap();
     final_scene(&mut file);
+    /*
+    let mut world = new_hittable_list();
+
+    let red = Material::Lambertian {
+        tex: Box::new(SolidColor {
+            albedo: Color {
+                e: [0.65, 0.05, 0.05],
+            },
+        }),
+    };
+    let white = Material::Lambertian {
+        tex: Box::new(SolidColor {
+            albedo: Color {
+                e: [0.73, 0.73, 0.73],
+            },
+        }),
+    };
+    let green = Material::Lambertian {
+        tex: Box::new(SolidColor {
+            albedo: Color {
+                e: [0.12, 0.45, 0.15],
+            },
+        }),
+    };
+    let light = Material::Diffuselight {
+        tex: Box::new(SolidColor {
+            albedo: Color {
+                e: [15.0, 15.0, 15.0],
+            },
+        }),
+    };
+
+    world.add(build_quad(
+        Point3 {
+            e: [555.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 555.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, 555.0],
+        },
+        green,
+    ));
+    world.add(build_quad(
+        Point3 { e: [0.0, 0.0, 0.0] },
+        Vec3 {
+            e: [0.0, 555.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, 555.0],
+        },
+        red,
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [343.0, 554.0, 332.0],
+        },
+        Vec3 {
+            e: [-130.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, -105.0],
+        },
+        light,
+    ));
+    world.add(build_quad(
+        Point3 { e: [0.0, 0.0, 0.0] },
+        Vec3 {
+            e: [555.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, 555.0],
+        },
+        white.clone(),
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [555.0, 555.0, 555.0],
+        },
+        Vec3 {
+            e: [-555.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, -555.0],
+        },
+        white.clone(),
+    ));
+    world.add(build_quad(
+        Point3 {
+            e: [0.0, 0.0, 555.0],
+        },
+        Vec3 {
+            e: [555.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 555.0, 0.0],
+        },
+        white.clone(),
+    ));
+    let box1 = build_box(
+        &Point3 { e: [0.0, 0.0, 0.0] },
+        &Vec3 {
+            e: [165.0, 330.0, 165.0],
+        },
+        &white,
+    );
+    let box1 = build_rotate(&box1, 15.0);
+    world.add(build_translate(
+        &box1,
+        Vec3 {
+            e: [265.0, 0.0, 295.0],
+        },
+    ));
+
+    let box2 = build_box(
+        &Point3 { e: [0.0, 0.0, 0.0] },
+        &Vec3 {
+            e: [165.0, 165.0, 165.0],
+        },
+        &white,
+    );
+    let box2 = build_rotate(&box2, -18.0);
+    world.add(build_translate(
+        &box2,
+        Vec3 {
+            e: [130.0, 0.0, 65.0],
+        },
+    ));
+
+    let mut cam = Camera {
+        aspect_ratio: 1.0,
+        width: 600,
+        samples_per_pixel: 200,
+        max_depth: 50,
+        background: Color::new(),
+
+        vfov: 40.0,
+        lookfrom: Point3 {
+            e: [278.0, 278.0, -800.0],
+        },
+        lookat: Point3 {
+            e: [278.0, 278.0, 0.0],
+        },
+        vup: Vec3 { e: [0.0, 1.0, 0.0] },
+
+        defocus_angle: 0.0,
+        focus_dist: 10.0,
+
+        height: 0,
+        camera_center: Vec3::new(),
+        pixel_loc: Vec3::new(),
+        delta_u: Vec3::new(),
+        delta_v: Vec3::new(),
+        pixel_samples_scale: 0.0,
+        u: Vec3::new(),
+        v: Vec3::new(),
+        w: Vec3::new(),
+        defocus_disk_u: Vec3::new(),
+        defocus_disk_v: Vec3::new(),
+    };
+    let mut objects = world.get_objects();
+    let size = objects.len();
+    let bvh_root = bvh_node(&mut objects, 0, size);
+    cam.render(bvh_root, file, 16);*/
 }
