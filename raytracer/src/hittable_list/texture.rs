@@ -13,8 +13,8 @@ pub enum Texture {
         even: Box<Texture>,
         odd: Box<Texture>,
     },*/
-    Imagetexture { image: Box<RtwImage> },
-    Noisetexture { noise: Box<Perlin>, scale: f64 },
+    _Imagetexture { image: Box<RtwImage> },
+    _Noisetexture { noise: Box<Perlin>, scale: f64 },
 }
 impl Texture {
     pub fn value(&self, u: f64, v: f64, p: &Point3) -> Color {
@@ -36,7 +36,7 @@ impl Texture {
                     odd.value(u, v, p)
                 }
             }*/
-            Texture::Imagetexture { image } => {
+            Texture::_Imagetexture { image } => {
                 let interval = Interval { min: 0.0, max: 1.0 };
                 let u = interval.clamp(u);
                 let v = 1.0 - interval.clamp(v);
@@ -46,7 +46,7 @@ impl Texture {
                     e: image.pixel_data(i, j),
                 }
             }
-            Texture::Noisetexture { noise, scale } => {
+            Texture::_Noisetexture { noise, scale } => {
                 Color { e: [0.5, 0.5, 0.5] }
                     * (1.0 + (scale * p.e[2] + 10.0 * noise.turb(p, 7)).sin())
             }

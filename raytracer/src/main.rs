@@ -9,19 +9,19 @@ use std::path::Path;
 
 use crate::camera::Camera;
 //use crate::hittable_list::HitObject;
+use crate::hittable_list::hittable::_build_constant_medium;
+use crate::hittable_list::hittable::_build_sphere;
 use crate::hittable_list::hittable::build_box;
-use crate::hittable_list::hittable::build_constant_medium;
 use crate::hittable_list::hittable::build_quad;
 use crate::hittable_list::hittable::build_rotate;
-use crate::hittable_list::hittable::build_sphere;
 use crate::hittable_list::hittable::build_translate;
 use crate::hittable_list::hittable::bvh_node;
 use crate::hittable_list::hittable::new_hittable_list;
 use crate::hittable_list::material::Material;
 //use crate::hittable_list::HittableList;
-//use crate::hittable_list::material::Dielectric;
+//use crate::hittable_list::material::_Dielectric;
 //use crate::hittable_list::material::Lambertian;
-//use crate::hittable_list::material::Metal;
+//use crate::hittable_list::material::_Metal;
 use crate::hittable_list::perlin::Perlin;
 use crate::hittable_list::texture::Texture;
 use crate::hittable_list::texture::Texture::SolidColor;
@@ -33,7 +33,7 @@ use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 //use crate::sphere::Sphere;
 
-fn final_scene(file: &mut File) {
+fn _final_scene(file: &mut File) {
     let mut boxes1 = new_hittable_list();
     let ground = Material::Lambertian {
         tex: Box::new(Texture::SolidColor {
@@ -91,7 +91,7 @@ fn final_scene(file: &mut File) {
             albedo: Color { e: [0.7, 0.3, 0.1] },
         }),
     };
-    world.add(build_sphere(
+    world.add(_build_sphere(
         center1,
         Vec3 {
             e: [30.0, 0.0, 0.0],
@@ -100,42 +100,42 @@ fn final_scene(file: &mut File) {
         sphere_material,
         true,
     ));
-    world.add(build_sphere(
+    world.add(_build_sphere(
         Point3 {
             e: [260.0, 150.0, 45.0],
         },
         Vec3::new(),
         50.0,
-        Material::Dielectric {
+        Material::_Dielectric {
             refraction_index: 1.5,
         },
         false,
     ));
-    world.add(build_sphere(
+    world.add(_build_sphere(
         Point3 {
             e: [0.0, 150.0, 145.0],
         },
         Vec3::new(),
         50.0,
-        Material::Metal {
+        Material::_Metal {
             albedo: Color { e: [0.8, 0.8, 0.9] },
             fuzz: 1.0,
         },
         false,
     ));
 
-    let boundary = build_sphere(
+    let boundary = _build_sphere(
         Point3 {
             e: [360.0, 150.0, 145.0],
         },
         Vec3::new(),
         70.0,
-        Material::Dielectric {
+        Material::_Dielectric {
             refraction_index: 1.5,
         },
         false,
     );
-    world.add(build_constant_medium(
+    world.add(_build_constant_medium(
         &boundary,
         0.2,
         &Texture::SolidColor {
@@ -144,16 +144,16 @@ fn final_scene(file: &mut File) {
     ));
     world.add(boundary);
 
-    let boundary = build_sphere(
+    let boundary = _build_sphere(
         Point3 { e: [0.0, 0.0, 0.0] },
         Vec3::new(),
         5000.0,
-        Material::Dielectric {
+        Material::_Dielectric {
             refraction_index: 1.5,
         },
         false,
     );
-    world.add(build_constant_medium(
+    world.add(_build_constant_medium(
         &boundary,
         0.0001,
         &Texture::SolidColor {
@@ -162,11 +162,11 @@ fn final_scene(file: &mut File) {
     ));
 
     let path = "raytracer/src/paint2.jpg";
-    let texture = rtw_image::load_image_to_float_array(path);
+    let texture = rtw_image::_load_image_to_float_array(path);
     let surface = Material::Lambertian {
         tex: Box::new(texture),
     };
-    world.add(build_sphere(
+    world.add(_build_sphere(
         Point3 {
             e: [400.0, 200.0, 400.0],
         },
@@ -175,11 +175,11 @@ fn final_scene(file: &mut File) {
         surface,
         false,
     ));
-    let pertext = Texture::Noisetexture {
-        noise: Box::new(Perlin::build_perlin()),
+    let pertext = Texture::_Noisetexture {
+        noise: Box::new(Perlin::_build_perlin()),
         scale: 0.2,
     };
-    world.add(build_sphere(
+    world.add(_build_sphere(
         Point3 {
             e: [220.0, 280.0, 300.0],
         },
@@ -200,7 +200,7 @@ fn final_scene(file: &mut File) {
         }),
     };
     for _j in 0..1000 {
-        boxes2.add(build_sphere(
+        boxes2.add(_build_sphere(
             Point3::random(0.0, 165.0),
             Vec3::new(),
             10.0,
@@ -242,6 +242,8 @@ fn final_scene(file: &mut File) {
         delta_u: Vec3::new(),
         delta_v: Vec3::new(),
         pixel_samples_scale: 0.0,
+        sqrt_spp: 0,
+        recip_sqrt_spp: 0.0,
         u: Vec3::new(),
         v: Vec3::new(),
         w: Vec3::new(),
@@ -260,8 +262,7 @@ fn main() {
         fs::create_dir_all(parent).unwrap();
     }
     let mut file = File::create(path).unwrap();
-    final_scene(&mut file);
-    /*
+
     let mut world = new_hittable_list();
 
     let red = Material::Lambertian {
@@ -394,7 +395,7 @@ fn main() {
     let mut cam = Camera {
         aspect_ratio: 1.0,
         width: 600,
-        samples_per_pixel: 200,
+        samples_per_pixel: 64,
         max_depth: 50,
         background: Color::new(),
 
@@ -416,6 +417,8 @@ fn main() {
         delta_u: Vec3::new(),
         delta_v: Vec3::new(),
         pixel_samples_scale: 0.0,
+        sqrt_spp: 0,
+        recip_sqrt_spp: 0.0,
         u: Vec3::new(),
         v: Vec3::new(),
         w: Vec3::new(),
@@ -425,5 +428,5 @@ fn main() {
     let mut objects = world.get_objects();
     let size = objects.len();
     let bvh_root = bvh_node(&mut objects, 0, size);
-    cam.render(bvh_root, file, 16);*/
+    cam.render(bvh_root, &mut file, 16);
 }

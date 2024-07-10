@@ -113,7 +113,7 @@ pub fn bvh_node(objects: &mut Vec<HitObject>, start: usize, end: usize) -> HitOb
         bbox,
     }
 }
-pub fn build_sphere(
+pub fn _build_sphere(
     center_st: Point3,
     center_vec: Vec3,
     radius: f64,
@@ -131,7 +131,7 @@ pub fn build_sphere(
     } else {
         point_to_aabb(&(center_st - v), &(center_st + v))
     };
-    HitObject::Sphere {
+    HitObject::_Sphere {
         center_st,
         radius,
         mat,
@@ -295,11 +295,11 @@ pub fn build_rotate(object: &HitObject, angle: f64) -> HitObject {
         bbox: point_to_aabb(&min, &max),
     }
 }
-pub fn build_constant_medium(boundary: &HitObject, density: f64, tex: &Texture) -> HitObject {
-    HitObject::ConstantMedium {
+pub fn _build_constant_medium(boundary: &HitObject, density: f64, tex: &Texture) -> HitObject {
+    HitObject::_ConstantMedium {
         boundary: Box::new(boundary.clone()),
         neg_inv_density: -1.0 / density,
-        phase_function: Material::ISotropic {
+        phase_function: Material::_Isotropic {
             tex: Box::new(tex.clone()),
         },
     }

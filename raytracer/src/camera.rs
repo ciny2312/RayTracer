@@ -36,6 +36,9 @@ pub struct Camera {
 
     pub height: u32, // Rendered image height
     pub pixel_samples_scale: f64,
+    pub sqrt_spp: u32,
+    pub recip_sqrt_spp: f64,
+
     pub camera_center: Point3, // Camera center
     pub pixel_loc: Point3,     // Location of pixel 0, 0
     pub delta_u: Vec3,         // Offset to pixel to the right
@@ -65,6 +68,8 @@ impl Camera {
 
             height: self.height,
             pixel_samples_scale: self.pixel_samples_scale,
+            sqrt_spp: self.sqrt_spp,
+            recip_sqrt_spp: self.recip_sqrt_spp,
             camera_center: self.camera_center,
             pixel_loc: self.pixel_loc,
             delta_u: self.delta_u,
@@ -108,7 +113,9 @@ impl Camera {
             }
         };
 
-        self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
+        self.sqrt_spp = (self.samples_per_pixel as f64).sqrt() as u32;
+        self.pixel_samples_scale = 1.0 / (self.sqrt_spp * self.sqrt_spp) as f64;
+        self.recip_sqrt_spp = 1.0 / self.sqrt_spp as f64;
 
         self.camera_center = self.lookfrom;
 
@@ -136,8 +143,8 @@ impl Camera {
         self.defocus_disk_u = self.u * defocus_radius;
         self.defocus_disk_v = self.v * defocus_radius;
     }
-    fn get_ray(&self, i: u32, j: u32) -> Ray {
-        let offset = Self::sample_square();
+    fn get_ray(&self, i: u32, j: u32, si: u32, sj: u32) -> Ray {
+        let offset = self.sample_square_stratified(si, sj);
         let pixel_sample = self.pixel_loc
             + (self.delta_u * (i as f64 + offset.e[0]))
             + (self.delta_v * (j as f64 + offset.e[1]));
@@ -157,7 +164,13 @@ impl Camera {
         self.camera_center + (self.defocus_disk_u * p.e[0]) + (self.defocus_disk_v * p.e[1])
     }
 
-    fn sample_square() -> Vec3 {
+    fn sample_square_stratified(&self, si: u32, sj: u32) -> Vec3 {
+        let px = (si as f64 + random_double_01()) * self.recip_sqrt_spp - 0.5;
+        let py = (sj as f64 + random_double_01()) * self.recip_sqrt_spp - 0.5;
+        Vec3 { e: [px, py, 0.0] }
+    }
+
+    fn _sample_square() -> Vec3 {
         Vec3 {
             e: [random_double_01() - 0.5, random_double_01() - 0.5, 0.0],
         }
@@ -190,9 +203,12 @@ impl Camera {
         for j in start_y..end_y {
             for i in 0..self.width {
                 let mut pixel_color = Color::new();
-                for _sample in 0..self.samples_per_pixel {
-                    let r = self.get_ray(i, j);
-                    pixel_color = pixel_color + self.ray_color(&r, self.max_depth as i32, world);
+                for sj in 0..self.sqrt_spp {
+                    for si in 0..self.sqrt_spp {
+                        let r = self.get_ray(i, j, si, sj);
+                        pixel_color =
+                            pixel_color + self.ray_color(&r, self.max_depth as i32, world);
+                    }
                 }
                 let mut buffer = result.lock().unwrap();
                 buffer[(j * self.width + i) as usize] = pixel_color * self.pixel_samples_scale;

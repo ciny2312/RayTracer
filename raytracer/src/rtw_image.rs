@@ -13,7 +13,7 @@ impl RtwImage {
         self.float_pixels[(y * self.width + x) as usize]
     }
 }
-pub fn load_image_to_float_array<P: AsRef<Path>>(path: P) -> Texture {
+pub fn _load_image_to_float_array<P: AsRef<Path>>(path: P) -> Texture {
     let img = image::open(path).expect("Failed to open image");
     let (width, height) = img.dimensions();
 
@@ -27,7 +27,7 @@ pub fn load_image_to_float_array<P: AsRef<Path>>(path: P) -> Texture {
 
         float_pixels.push([r, g, b]);
     }
-    Texture::Imagetexture {
+    Texture::_Imagetexture {
         image: Box::new(RtwImage {
             width,
             height,
