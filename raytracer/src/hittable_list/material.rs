@@ -109,6 +109,15 @@ fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
     r0 = r0 * r0;
     r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0)
 }
+pub fn scattering_pdf(_r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
+    let cos_theta = Vec3::dot(&rec.normal, &Vec3::unit_vector(scattered.dir));
+    if cos_theta < 0.0 {
+        0.0
+    } else {
+        cos_theta / std::f64::consts::PI
+    }
+}
+
 /*
 impl _Dielectric {
 }
