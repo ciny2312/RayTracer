@@ -99,7 +99,7 @@ impl Camera {
 
             if flag1 {
                 let scattering_pdf = scattering_pdf(r, &rec, &scattered);
-                let pdf = 1.0 / (2.0 * std::f64::consts::PI);
+                let pdf = scattering_pdf;
                 let color_from_scatter =
                     (self.ray_color(&scattered, depth - 1, world) * attenuation * scattering_pdf)
                         / pdf;

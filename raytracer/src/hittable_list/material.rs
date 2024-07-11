@@ -32,7 +32,7 @@ impl Material {
     pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (Color, Ray, bool) {
         match self {
             Material::Lambertian { tex } => {
-                let mut scatter_direction = rec.normal + Vec3::random_unit_vector();
+                let mut scatter_direction = Vec3::random_on_hemisphere(&rec.normal);
                 if scatter_direction.near_zero() {
                     scatter_direction = rec.normal;
                 }
@@ -109,13 +109,8 @@ fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
     r0 = r0 * r0;
     r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0)
 }
-pub fn scattering_pdf(_r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
-    let cos_theta = Vec3::dot(&rec.normal, &Vec3::unit_vector(scattered.dir));
-    if cos_theta < 0.0 {
-        0.0
-    } else {
-        cos_theta / std::f64::consts::PI
-    }
+pub fn scattering_pdf(_r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f64 {
+    1.0 / (2.0 * std::f64::consts::PI)
 }
 
 /*
