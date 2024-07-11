@@ -395,7 +395,7 @@ fn main() {
     let mut cam = Camera {
         aspect_ratio: 1.0,
         width: 600,
-        samples_per_pixel: 64,
+        samples_per_pixel: 100,
         max_depth: 50,
         background: Color::new(),
 
