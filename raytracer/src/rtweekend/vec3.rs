@@ -140,14 +140,14 @@ impl Vec3 {
             }
         }
     }
-    pub fn random_cosine_direction()->Vec3{
-        let r1=random_double_01();
-        let r2=random_double_01();
-        let phi=2.0*std::f64::consts::PI*r1;
-        let x=phi.cos()*r2.sqrt();
-        let y=phi.sin()*r2.sqrt();
-        let z=(1.0-r2).sqrt();
-        Vec3{e:[x,y,z]}
+    pub fn random_cosine_direction() -> Vec3 {
+        let r1 = random_double_01();
+        let r2 = random_double_01();
+        let phi = 2.0 * std::f64::consts::PI * r1;
+        let x = phi.cos() * r2.sqrt();
+        let y = phi.sin() * r2.sqrt();
+        let z = (1.0 - r2).sqrt();
+        Vec3 { e: [x, y, z] }
     }
     pub fn random_unit_vector() -> Vec3 {
         Self::unit_vector(Self::random_in_unit_sphere())

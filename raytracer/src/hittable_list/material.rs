@@ -31,18 +31,18 @@ impl Material {
             },
         }
     }*/
-    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord,pdf:& mut f64) -> (Color, Ray, bool) {
+    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord, pdf: &mut f64) -> (Color, Ray, bool) {
         match self {
             Material::Lambertian { tex } => {
-                let uvw=Onb::build_from_w(rec.normal);
+                let uvw = Onb::build_from_w(rec.normal);
                 let scatter_direction = uvw.local(&Vec3::random_cosine_direction());
-                
+
                 let scattered = Ray {
                     ori: rec.p,
                     dir: Vec3::unit_vector(scatter_direction),
                     tm: r_in.tm,
                 };
-                *pdf=Vec3::dot(&uvw.axis[2],&scattered.dir)/std::f64::consts::PI;
+                *pdf = Vec3::dot(&uvw.axis[2], &scattered.dir) / std::f64::consts::PI;
                 (tex.value(rec.u, rec.v, &rec.p), scattered, true)
             }
             Material::_Metal { albedo, fuzz } => {
@@ -81,15 +81,18 @@ impl Material {
                 (Color { e: [1.0, 1.0, 1.0] }, scattered, true)
             }
             Material::Diffuselight { tex: _ } => (Color::new(), Ray::new(), false),
-            Material::_Isotropic { tex } => (
-                tex.value(rec.u, rec.v, &rec.p),
-                Ray {
-                    ori: rec.p,
-                    dir: Vec3::random_unit_vector(),
-                    tm: r_in.tm,
-                },
-                true,
-            ),
+            Material::_Isotropic { tex } => {
+                *pdf = 1.0 / (4.0 * std::f64::consts::PI);
+                (
+                    tex.value(rec.u, rec.v, &rec.p),
+                    Ray {
+                        ori: rec.p,
+                        dir: Vec3::random_unit_vector(),
+                        tm: r_in.tm,
+                    },
+                    true,
+                )
+            }
         }
     }
 
@@ -104,15 +107,23 @@ impl Material {
             Material::_Isotropic { tex: _ } => Color::new(),
         }
     }
+    pub fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f64 {
+        match self {
+            Material::Lambertian { tex: _ } => 1.0 / (2.0 * std::f64::consts::PI),
+            Material::_Metal { albedo: _, fuzz: _ } => 0.0,
+            Material::_Dielectric {
+                refraction_index: _,
+            } => 0.0,
+            Material::Diffuselight { tex: _ } => 0.0,
+            Material::_Isotropic { tex: _ } => 1.0 / (4.0 * std::f64::consts::PI),
+        }
+    }
 }
 
 fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
     let mut r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
     r0 = r0 * r0;
     r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0)
-}
-pub fn scattering_pdf(_r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f64 {
-    1.0 / (2.0 * std::f64::consts::PI)
 }
 
 /*

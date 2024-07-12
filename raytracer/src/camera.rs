@@ -7,7 +7,6 @@ use std::thread;
 //use std::sync::mpsc::channel;
 //use std::time::Instant;
 
-use crate::hittable_list::material::scattering_pdf;
 use crate::hittable_list::HitObject;
 //use crate::hittable_list::HittableList;
 use crate::rtweekend::color::write_color;
@@ -95,12 +94,12 @@ impl Camera {
         );
         if flag {
             let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
-            
-            let mut pdf=0.0;// = scattering_pdf;
-            let (attenuation, scattered, flag1) = rec.mat.scatter(r, &rec,& mut pdf);
 
+            let mut pdf = 0.0; // = scattering_pdf;
+            let (attenuation, scattered, flag1) = rec.mat.scatter(r, &rec, &mut pdf);
+            //    dbg!(pdf);
             if flag1 {
-                let scattering_pdf = scattering_pdf(r, &rec, &scattered);
+                let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
                 let color_from_scatter =
                     (self.ray_color(&scattered, depth - 1, world) * attenuation * scattering_pdf)
                         / pdf;
