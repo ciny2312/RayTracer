@@ -4,6 +4,8 @@ use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 
+use crate::onb::Onb;
+
 use crate::hittable_list::hittable::HitRecord;
 use crate::hittable_list::texture::Texture;
 //use crate::hittable_list::texture::Texture::SolidColor;
@@ -29,18 +31,18 @@ impl Material {
             },
         }
     }*/
-    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (Color, Ray, bool) {
+    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord,pdf:& mut f64) -> (Color, Ray, bool) {
         match self {
             Material::Lambertian { tex } => {
-                let mut scatter_direction = Vec3::random_on_hemisphere(&rec.normal);
-                if scatter_direction.near_zero() {
-                    scatter_direction = rec.normal;
-                }
+                let uvw=Onb::build_from_w(rec.normal);
+                let scatter_direction = uvw.local(&Vec3::random_cosine_direction());
+                
                 let scattered = Ray {
                     ori: rec.p,
-                    dir: scatter_direction,
+                    dir: Vec3::unit_vector(scatter_direction),
                     tm: r_in.tm,
                 };
+                *pdf=Vec3::dot(&uvw.axis[2],&scattered.dir)/std::f64::consts::PI;
                 (tex.value(rec.u, rec.v, &rec.p), scattered, true)
             }
             Material::_Metal { albedo, fuzz } => {

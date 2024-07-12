@@ -95,11 +95,12 @@ impl Camera {
         );
         if flag {
             let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
-            let (attenuation, scattered, flag1) = rec.mat.scatter(r, &rec);
+            
+            let mut pdf=0.0;// = scattering_pdf;
+            let (attenuation, scattered, flag1) = rec.mat.scatter(r, &rec,& mut pdf);
 
             if flag1 {
                 let scattering_pdf = scattering_pdf(r, &rec, &scattered);
-                let pdf = scattering_pdf;
                 let color_from_scatter =
                     (self.ray_color(&scattered, depth - 1, world) * attenuation * scattering_pdf)
                         / pdf;

@@ -3,6 +3,7 @@ mod camera;
 mod hittable_list;
 mod rtw_image;
 mod rtweekend;
+mod onb;
 
 use std::fs::{self, File};
 use std::path::Path;

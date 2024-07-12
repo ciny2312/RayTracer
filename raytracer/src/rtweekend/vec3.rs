@@ -140,17 +140,26 @@ impl Vec3 {
             }
         }
     }
+    pub fn random_cosine_direction()->Vec3{
+        let r1=random_double_01();
+        let r2=random_double_01();
+        let phi=2.0*std::f64::consts::PI*r1;
+        let x=phi.cos()*r2.sqrt();
+        let y=phi.sin()*r2.sqrt();
+        let z=(1.0-r2).sqrt();
+        Vec3{e:[x,y,z]}
+    }
     pub fn random_unit_vector() -> Vec3 {
         Self::unit_vector(Self::random_in_unit_sphere())
     }
-    pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+    pub fn _random_on_hemisphere(normal: &Vec3) -> Vec3 {
         let on_unit_sphere = Self::random_unit_vector();
         if Self::dot(&on_unit_sphere, normal) > 0.0 {
             return on_unit_sphere;
         }
         -on_unit_sphere
     }
-    pub fn near_zero(&self) -> bool {
+    pub fn _near_zero(&self) -> bool {
         let s = 1e-8;
         (self.e[0].abs() < s) && (self.e[1].abs() < s) && (self.e[2].abs() < s)
     }
