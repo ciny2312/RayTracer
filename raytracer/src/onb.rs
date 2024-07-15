@@ -1,3 +1,4 @@
+pub mod pdf;
 use crate::rtweekend::vec3::Vec3;
 pub struct Onb {
     pub axis: [Vec3; 3],

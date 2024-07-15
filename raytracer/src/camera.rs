@@ -6,13 +6,15 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 //use std::sync::mpsc::channel;
 //use std::time::Instant;
+use crate::onb::pdf::Pdf;
+use crate::onb::Onb;
 
 use crate::hittable_list::HitObject;
 //use crate::hittable_list::HittableList;
 use crate::rtweekend::color::write_color;
 use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::interval::Interval;
-use crate::rtweekend::random_double;
+//use crate::rtweekend::random_double;
 use crate::rtweekend::random_double_01;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Color;
@@ -96,38 +98,24 @@ impl Camera {
         if flag {
             let color_from_emission = rec.mat.emitted(r, &rec, rec.u, rec.v, &rec.p);
 
-            let mut pdf = 0.0; // = scattering_pdf;
-            let (attenuation, _scattered, flag1) = rec.mat.scatter(r, &rec, &mut pdf);
+            let mut pdf_val = 0.0; // = scattering_pdf;
+            let (attenuation, _scattered, flag1) = rec.mat.scatter(r, &rec, &mut pdf_val);
             //    dbg!(pdf);
             if flag1 {
-                let on_light = Point3 {
-                    e: [
-                        random_double(213.0, 343.0),
-                        554.0,
-                        random_double(227.0, 332.0),
-                    ],
+                let surface_pdf = Pdf::CosinePdf {
+                    uvw: Onb::build_from_w(rec.normal),
                 };
-                let mut to_light = on_light - rec.p;
-                let distance_squared = to_light.sq_length();
-                to_light = Vec3::unit_vector(to_light);
-                if Vec3::dot(&to_light, &rec.normal) < 0.0 {
-                    return color_from_emission;
-                }
-                let light_area = ((343 - 213) * (332 - 227)) as f64;
-                let light_cosine = to_light.e[1].abs();
-                if light_cosine < 0.000001 {
-                    return color_from_emission;
-                }
-                pdf = distance_squared / (light_cosine * light_area);
                 let scattered = Ray {
                     ori: rec.p,
-                    dir: to_light,
+                    dir: surface_pdf.generate(),
                     tm: r.tm,
                 };
+                pdf_val = surface_pdf.value(scattered.dir);
+
                 let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
                 let color_from_scatter =
                     (self.ray_color(&scattered, depth - 1, world) * attenuation * scattering_pdf)
-                        / pdf;
+                        / pdf_val;
 
                 return color_from_emission + color_from_scatter;
             }
