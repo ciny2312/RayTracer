@@ -96,14 +96,19 @@ impl Material {
         }
     }
 
-    pub fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
+    pub fn emitted(&self, _r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
         match self {
             Material::Lambertian { tex: _ } => Color::new(),
             Material::_Metal { albedo: _, fuzz: _ } => Color::new(),
             Material::_Dielectric {
                 refraction_index: _,
             } => Color::new(),
-            Material::Diffuselight { tex } => tex.value(u, v, p),
+            Material::Diffuselight { tex } => {
+                if !rec.front_face {
+                    return Color::new();
+                }
+                tex.value(u, v, p)
+            }
             Material::_Isotropic { tex: _ } => Color::new(),
         }
     }

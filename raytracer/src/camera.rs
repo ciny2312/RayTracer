@@ -94,7 +94,7 @@ impl Camera {
             },
         );
         if flag {
-            let color_from_emission = rec.mat.emitted(rec.u, rec.v, &rec.p);
+            let color_from_emission = rec.mat.emitted(r, &rec, rec.u, rec.v, &rec.p);
 
             let mut pdf = 0.0; // = scattering_pdf;
             let (attenuation, _scattered, flag1) = rec.mat.scatter(r, &rec, &mut pdf);
