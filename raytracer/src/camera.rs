@@ -7,7 +7,7 @@ use std::thread;
 //use std::sync::mpsc::channel;
 //use std::time::Instant;
 use crate::onb::pdf::Pdf;
-use crate::onb::Onb;
+//use crate::onb::Onb;
 
 use crate::hittable_list::HitObject;
 //use crate::hittable_list::HittableList;
@@ -84,7 +84,7 @@ impl Camera {
             defocus_disk_v: self.defocus_disk_v,
         }
     }
-    fn ray_color(&self, r: &Ray, depth: i32, world: &HitObject) -> Color {
+    fn ray_color(&self, r: &Ray, depth: i32, world: &HitObject, lights: &HitObject) -> Color {
         if depth <= 0 {
             return Color::new();
         }
@@ -102,21 +102,26 @@ impl Camera {
             let (attenuation, _scattered, flag1) = rec.mat.scatter(r, &rec, &mut pdf_val);
             //    dbg!(pdf);
             if flag1 {
-                let surface_pdf = Pdf::CosinePdf {
-                    uvw: Onb::build_from_w(rec.normal),
+                let obj = lights.get_objects();
+                let light_pdf = Pdf::Hittablepdf {
+                    objects: Box::new(obj[0].clone()),
+                    ori: rec.p,
                 };
                 let scattered = Ray {
                     ori: rec.p,
-                    dir: surface_pdf.generate(),
+                    dir: light_pdf.generate(),
                     tm: r.tm,
                 };
-                pdf_val = surface_pdf.value(scattered.dir);
+                pdf_val = light_pdf.value(scattered.dir);
 
                 let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
-                let color_from_scatter =
-                    (self.ray_color(&scattered, depth - 1, world) * attenuation * scattering_pdf)
-                        / pdf_val;
 
+                let color_from_scatter = (self.ray_color(&scattered, depth - 1, world, lights)
+                    * attenuation
+                    * scattering_pdf)
+                    / pdf_val;
+                //    dbg!(color_from_emission);
+                //    dbg!(color_from_scatter);
                 return color_from_emission + color_from_scatter;
             }
             return color_from_emission;
@@ -215,7 +220,8 @@ impl Camera {
     }*/
     fn render_block(
         &self,
-        world: &HitObject,
+        world: HitObject,
+        lights: HitObject,
         start_y: u32,
         end_y: u32,
         result: Arc<Mutex<Vec<Color>>>,
@@ -226,8 +232,8 @@ impl Camera {
                 for sj in 0..self.sqrt_spp {
                     for si in 0..self.sqrt_spp {
                         let r = self.get_ray(i, j, si, sj);
-                        pixel_color =
-                            pixel_color + self.ray_color(&r, self.max_depth as i32, world);
+                        pixel_color = pixel_color
+                            + self.ray_color(&r, self.max_depth as i32, &world, &lights);
                     }
                 }
                 let mut buffer = result.lock().unwrap();
@@ -235,7 +241,13 @@ impl Camera {
             }
         }
     }
-    pub fn render(&mut self, world: HitObject, file: &mut File, num_threads: u32) {
+    pub fn render(
+        &mut self,
+        world: HitObject,
+        lights: HitObject,
+        file: &mut File,
+        num_threads: u32,
+    ) {
         self.initialize();
         let total_pixels = self.height * self.width;
         let progress = ProgressBar::new(total_pixels as u64);
@@ -245,6 +257,7 @@ impl Camera {
         let handles: Vec<_> = (0..num_threads)
             .map(|i| {
                 let world = world.clone();
+                let lights = lights.clone();
                 let start_y = i * block_height;
                 let end_y = if i == num_threads - 1 {
                     self.height
@@ -256,7 +269,7 @@ impl Camera {
 
                 let cam = self.clone();
                 thread::spawn(move || {
-                    cam.render_block(&world, start_y, end_y, result);
+                    cam.render_block(world, lights, start_y, end_y, result);
                 })
             })
             .collect();

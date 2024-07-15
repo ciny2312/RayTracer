@@ -112,9 +112,16 @@ impl Material {
             Material::_Isotropic { tex: _ } => Color::new(),
         }
     }
-    pub fn scattering_pdf(&self, _r_in: &Ray, _rec: &HitRecord, _scattered: &Ray) -> f64 {
+    pub fn scattering_pdf(&self, _r_in: &Ray, rec: &HitRecord, scattered: &Ray) -> f64 {
         match self {
-            Material::Lambertian { tex: _ } => 1.0 / (2.0 * std::f64::consts::PI),
+            Material::Lambertian { tex: _ } => {
+                let cosine = Vec3::dot(&rec.normal, &Vec3::unit_vector(scattered.dir));
+                if cosine < 0.0 {
+                    0.0
+                } else {
+                    cosine / std::f64::consts::PI
+                }
+            }
             Material::_Metal { albedo: _, fuzz: _ } => 0.0,
             Material::_Dielectric {
                 refraction_index: _,

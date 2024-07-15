@@ -157,6 +157,7 @@ pub fn build_quad(q: Point3, u: Vec3, v: Vec3, mat: Material) -> HitObject {
         &point_to_aabb(&q, &(q + u + v)),
         &point_to_aabb(&(q + u), &(q + v)),
     );
+    let area = n.length();
     HitObject::Quad {
         q,
         u,
@@ -166,6 +167,7 @@ pub fn build_quad(q: Point3, u: Vec3, v: Vec3, mat: Material) -> HitObject {
         normal,
         bbox,
         d,
+        area,
     }
 }
 pub fn is_interior(a: f64, b: f64, rec: &mut HitRecord) -> bool {

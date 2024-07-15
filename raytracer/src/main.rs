@@ -10,8 +10,8 @@ use std::path::Path;
 
 use crate::camera::Camera;
 //use crate::hittable_list::HitObject;
-use crate::hittable_list::hittable::_build_constant_medium;
-use crate::hittable_list::hittable::_build_sphere;
+//use crate::hittable_list::hittable::_build_constant_medium;
+//use crate::hittable_list::hittable::_build_sphere;
 use crate::hittable_list::hittable::build_box;
 use crate::hittable_list::hittable::build_quad;
 use crate::hittable_list::hittable::build_rotate;
@@ -23,17 +23,17 @@ use crate::hittable_list::material::Material;
 //use crate::hittable_list::material::_Dielectric;
 //use crate::hittable_list::material::Lambertian;
 //use crate::hittable_list::material::_Metal;
-use crate::hittable_list::perlin::Perlin;
-use crate::hittable_list::texture::Texture;
+//use crate::hittable_list::perlin::Perlin;
+//use crate::hittable_list::texture::Texture;
 use crate::hittable_list::texture::Texture::SolidColor;
 
-use crate::rtweekend::random_double;
+//use crate::rtweekend::random_double;
 //use crate::rtweekend::random_double_01;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 //use crate::sphere::Sphere;
-
+/*
 fn _final_scene(file: &mut File) {
     let mut boxes1 = new_hittable_list();
     let ground = Material::Lambertian {
@@ -256,7 +256,7 @@ fn _final_scene(file: &mut File) {
     let bvh_root = bvh_node(&mut objects, 0, size);
     cam.render(bvh_root, file, 16);
 }
-
+*/
 fn main() {
     let path = Path::new("output/book1/image10.ppm");
     if let Some(parent) = path.parent() {
@@ -316,6 +316,20 @@ fn main() {
             e: [0.0, 0.0, 555.0],
         },
         red,
+    ));
+
+    let mut lights = new_hittable_list();
+    lights.add(build_quad(
+        Point3 {
+            e: [343.0, 554.0, 332.0],
+        },
+        Vec3 {
+            e: [-130.0, 0.0, 0.0],
+        },
+        Vec3 {
+            e: [0.0, 0.0, -105.0],
+        },
+        light.clone(),
     ));
     world.add(build_quad(
         Point3 {
@@ -429,5 +443,5 @@ fn main() {
     let mut objects = world.get_objects();
     let size = objects.len();
     let bvh_root = bvh_node(&mut objects, 0, size);
-    cam.render(bvh_root, &mut file, 16);
+    cam.render(bvh_root, lights, &mut file, 16);
 }

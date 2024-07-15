@@ -36,6 +36,7 @@ pub enum HitObject {
         bbox: Aabb,
         normal: Vec3,
         d: f64,
+        area: f64,
     },
     Bvh {
         left: Box<HitObject>,
@@ -84,6 +85,7 @@ impl HitObject {
                 bbox,
                 normal: _,
                 d: _,
+                area: _,
             } => bbox.clone(),
             HitObject::Bvh {
                 left: _,
@@ -128,6 +130,7 @@ impl HitObject {
                 bbox: _,
                 normal: _,
                 d: _,
+                area: _,
             } => Vec::new(),
             HitObject::Bvh {
                 left: _,
@@ -172,6 +175,7 @@ impl HitObject {
                 bbox: _,
                 normal: _,
                 d: _,
+                area: _,
             } => Vec3::new(),
             HitObject::Bvh {
                 left: _,
@@ -249,6 +253,7 @@ impl HitObject {
                 bbox: _,
                 normal,
                 d,
+                area: _,
             } => {
                 let mut rec = HitRecord::new();
                 let denom = Vec3::dot(normal, &r.dir);
@@ -435,6 +440,7 @@ impl HitObject {
                 bbox: _,
                 normal: _,
                 d: _,
+                area: _,
             } => (),
             HitObject::Bvh {
                 left: _,
@@ -463,6 +469,120 @@ impl HitObject {
             } => (),
         }
     }
+    pub fn pdf_value(&self, ori: Point3, dir: Vec3) -> f64 {
+        match self {
+            HitObject::_Sphere {
+                center_st: _,
+                radius: _,
+                mat: _,
+                is_moving: _,
+                center_vec: _,
+                bbox: _,
+            } => 0.0,
+            HitObject::Quad {
+                q: _,
+                u: _,
+                v: _,
+                w: _,
+                mat: _,
+                bbox: _,
+                normal: _,
+                d: _,
+                area,
+            } => {
+                let (rec, flag) = self.hit(
+                    &Ray { ori, dir, tm: 0.0 },
+                    &Interval {
+                        min: 0.001,
+                        max: INF,
+                    },
+                );
+                if !flag {
+                    return 0.0;
+                }
+                let distance_squared = rec.t * rec.t * dir.sq_length();
+                let cosine = (Vec3::dot(&dir, &rec.normal) / dir.length()).abs();
+                distance_squared / (cosine * area)
+            }
+            HitObject::Bvh {
+                left: _,
+                right: _,
+                bbox: _,
+            } => 0.0,
+            HitObject::HittableList {
+                objects: _,
+                bbox: _,
+            } => 0.0,
+            HitObject::Translate {
+                object: _,
+                offset: _,
+                bbox: _,
+            } => 0.0,
+            HitObject::Rotate {
+                object: _,
+                sin_theta: _,
+                cos_theta: _,
+                bbox: _,
+            } => 0.0,
+            HitObject::_ConstantMedium {
+                boundary: _,
+                neg_inv_density: _,
+                phase_function: _,
+            } => 0.0,
+        }
+    }
+    pub fn random_from(&self, ori: Point3) -> Vec3 {
+        match self {
+            HitObject::_Sphere {
+                center_st: _,
+                radius: _,
+                mat: _,
+                is_moving: _,
+                center_vec: _,
+                bbox: _,
+            } => Vec3::new(),
+            HitObject::Quad {
+                q,
+                u,
+                v,
+                w: _,
+                mat: _,
+                bbox: _,
+                normal: _,
+                d: _,
+                area: _,
+            } => {
+                let p = (*q) + ((*u) * random_double_01()) + ((*v) * random_double_01());
+                p - ori
+            }
+            HitObject::Bvh {
+                left: _,
+                right: _,
+                bbox: _,
+            } => Vec3::new(),
+            HitObject::HittableList {
+                objects: _,
+                bbox: _,
+            } => Vec3::new(),
+            HitObject::Translate {
+                object: _,
+                offset: _,
+                bbox: _,
+            } => Vec3::new(),
+            HitObject::Rotate {
+                object: _,
+                sin_theta: _,
+                cos_theta: _,
+                bbox: _,
+            } => Vec3::new(),
+            HitObject::_ConstantMedium {
+                boundary: _,
+                neg_inv_density: _,
+                phase_function: _,
+            } => Vec3::new(),
+        }
+    }
+
     /*    pub fn clone(&self) -> HitObject {
         match self{
             HitObject::_Sphere {
