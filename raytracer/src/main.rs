@@ -407,6 +407,15 @@ fn main() {
         },
         Vec3::new(),
         90.0,
+        glass.clone(),
+        false,
+    ));
+    lights.add(build_sphere(
+        Point3 {
+            e: [190.0, 90.0, 190.0],
+        },
+        Vec3::new(),
+        90.0,
         glass,
         false,
     ));

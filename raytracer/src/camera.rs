@@ -110,9 +110,8 @@ impl Camera {
                     return self.ray_color(&srec.skip_pdf_ray, depth - 1, world, lights)
                         * srec.attenuation;
                 }
-                let obj = lights.get_objects();
                 let light_ptr = Pdf::Hittablepdf {
-                    objects: Box::new(obj[0].clone()),
+                    objects: Box::new(lights.clone()),
                     ori: rec.p,
                 };
                 let mixed_pdf = Pdf::Mixturepdf {
