@@ -14,6 +14,16 @@ pub fn write_color(pixel_color: &Color, file: &mut File) {
     let mut g = pixel_color.e[1];
     let mut b = pixel_color.e[2];
 
+    if r != r {
+        r = 0.0;
+    }
+    if g != g {
+        g = 0.0;
+    }
+    if b != b {
+        b = 0.0;
+    }
+
     r = linear_to_gamma(r);
     g = linear_to_gamma(g);
     b = linear_to_gamma(b);
