@@ -377,18 +377,18 @@ fn main() {
         },
         white.clone(),
     ));
-    let aluminum = Material::Metal {
+    /*    let aluminum = Material::Metal {
         albedo: Color {
             e: [0.8, 0.85, 0.88],
         },
         fuzz: 0.0,
-    };
+    };*/
     let box1 = build_box(
         &Point3 { e: [0.0, 0.0, 0.0] },
         &Vec3 {
             e: [165.0, 330.0, 165.0],
         },
-        &aluminum,
+        &white,
     );
     let box1 = build_rotate(&box1, 15.0);
     world.add(build_translate(
@@ -416,7 +416,7 @@ fn main() {
     let mut cam = Camera {
         aspect_ratio: 1.0,
         width: 600,
-        samples_per_pixel: 10,
+        samples_per_pixel: 1000,
         max_depth: 50,
         background: Color::new(),
 

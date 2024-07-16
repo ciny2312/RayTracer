@@ -14,7 +14,7 @@ use crate::hittable_list::texture::Texture;
 #[derive(Clone, Debug)]
 pub enum Material {
     Lambertian { tex: Box<Texture> },
-    Metal { albedo: Color, fuzz: f64 },
+    _Metal { albedo: Color, fuzz: f64 },
     _Dielectric { refraction_index: f64 },
     Diffuselight { tex: Box<Texture> },
     _Isotropic { tex: Box<Texture> },
@@ -42,7 +42,7 @@ impl Material {
                 srec.skip_pdf = false;
                 true
             }
-            Material::Metal { albedo, fuzz } => {
+            Material::_Metal { albedo, fuzz } => {
                 let mut reflected = Vec3::reflect(r_in.dir, rec.normal);
                 reflected = Vec3::unit_vector(reflected) + Vec3::random_unit_vector() * (*fuzz);
                 srec.attenuation = *albedo;
@@ -94,7 +94,7 @@ impl Material {
     pub fn emitted(&self, _r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
         match self {
             Material::Lambertian { tex: _ } => Color::new(),
-            Material::Metal { albedo: _, fuzz: _ } => Color::new(),
+            Material::_Metal { albedo: _, fuzz: _ } => Color::new(),
             Material::_Dielectric {
                 refraction_index: _,
             } => Color::new(),
@@ -117,7 +117,7 @@ impl Material {
                     cosine / std::f64::consts::PI
                 }
             }
-            Material::Metal { albedo: _, fuzz: _ } => 0.0,
+            Material::_Metal { albedo: _, fuzz: _ } => 0.0,
             Material::_Dielectric {
                 refraction_index: _,
             } => 0.0,
