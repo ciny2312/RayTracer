@@ -2,9 +2,9 @@ use indicatif::ProgressBar;
 use std::fs::File;
 use std::io::Write;
 
-use std::sync::{Arc, Mutex};
+//use std::sync::{Arc, Mutex};
+use std::sync::mpsc::channel;
 use std::thread;
-//use std::sync::mpsc::channel;
 //use std::time::Instant;
 use crate::onb::pdf::Pdf;
 //use crate::onb::Onb;
@@ -235,8 +235,8 @@ impl Camera {
         lights: HitObject,
         start_y: u32,
         end_y: u32,
-        result: Arc<Mutex<Vec<Color>>>,
-    ) {
+    ) -> Vec<(u32, u32, Color)> {
+        let mut result = Vec::new();
         for j in start_y..end_y {
             for i in 0..self.width {
                 let mut pixel_color = Color::new();
@@ -247,10 +247,10 @@ impl Camera {
                             + self.ray_color(&r, self.max_depth as i32, &world, &lights);
                     }
                 }
-                let mut buffer = result.lock().unwrap();
-                buffer[(j * self.width + i) as usize] = pixel_color * self.pixel_samples_scale;
+                result.push((i, j, pixel_color * self.pixel_samples_scale));
             }
         }
+        result
     }
     pub fn render(
         &mut self,
@@ -260,43 +260,45 @@ impl Camera {
         num_threads: u32,
     ) {
         self.initialize();
+        let (tx, rx) = channel();
         let total_pixels = self.height * self.width;
         let progress = ProgressBar::new(total_pixels as u64);
 
         let block_height = self.height / num_threads;
-        let result = Arc::new(Mutex::new(vec![Color::new(); total_pixels as usize]));
-        let handles: Vec<_> = (0..num_threads)
-            .map(|i| {
-                let world = world.clone();
-                let lights = lights.clone();
-                let start_y = i * block_height;
-                let end_y = if i == num_threads - 1 {
-                    self.height
-                } else {
-                    (i + 1) * block_height
-                };
 
-                let result = Arc::clone(&result);
+        for i in 0..num_threads {
+            let world = world.clone();
+            let lights = lights.clone();
+            let start_y = i * block_height;
+            let end_y = if i == num_threads - 1 {
+                self.height
+            } else {
+                (i + 1) * block_height
+            };
 
-                let cam = self.clone();
-                thread::spawn(move || {
-                    cam.render_block(world, lights, start_y, end_y, result);
-                })
-            })
-            .collect();
+            let cam = self.clone();
+            let tx1 = tx.clone();
 
-        for handle in handles {
-            handle.join().unwrap();
+            thread::spawn(move || {
+                tx1.send(cam.render_block(world, lights, start_y, end_y))
+                    .unwrap();
+            });
         }
+
+        drop(tx);
 
         writeln!(file, "P3\n{} {}\n255", self.width, self.height).unwrap();
 
-        let buffer = result.lock().unwrap();
-        for i in 0..total_pixels {
-            write_color(&buffer[i as usize], file);
+        let mut result = vec![Color::new(); total_pixels as usize];
+        for block_result in rx {
+            for (i, j, c) in block_result {
+                result[(j * self.width + i) as usize] = c;
+            }
+        }
+        for color in &result {
+            write_color(color, file);
             progress.inc(1);
         }
-
         progress.finish();
     }
 }
