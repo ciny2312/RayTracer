@@ -4,6 +4,7 @@ use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 
+use crate::onb::pdf::Pdf;
 use crate::onb::Onb;
 
 use crate::hittable_list::hittable::HitRecord;
@@ -13,7 +14,7 @@ use crate::hittable_list::texture::Texture;
 #[derive(Clone, Debug)]
 pub enum Material {
     Lambertian { tex: Box<Texture> },
-    _Metal { albedo: Color, fuzz: f64 },
+    Metal { albedo: Color, fuzz: f64 },
     _Dielectric { refraction_index: f64 },
     Diffuselight { tex: Box<Texture> },
     _Isotropic { tex: Box<Texture> },
@@ -31,32 +32,32 @@ impl Material {
             },
         }
     }*/
-    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord, pdf: &mut f64) -> (Color, Ray, bool) {
+    pub fn scatter(&self, r_in: &Ray, rec: &HitRecord, srec: &mut ScatterRecord) -> bool {
         match self {
             Material::Lambertian { tex } => {
-                let uvw = Onb::build_from_w(rec.normal);
-                let scatter_direction = uvw.local(&Vec3::random_cosine_direction());
-
-                let scattered = Ray {
-                    ori: rec.p,
-                    dir: Vec3::unit_vector(scatter_direction),
-                    tm: r_in.tm,
-                };
-                *pdf = Vec3::dot(&uvw.axis[2], &scattered.dir) / std::f64::consts::PI;
-                (tex.value(rec.u, rec.v, &rec.p), scattered, true)
+                srec.attenuation = tex.value(rec.u, rec.v, &rec.p);
+                srec.pdf_ptr = Box::new(Pdf::Cosinepdf {
+                    uvw: Onb::build_from_w(rec.normal),
+                });
+                srec.skip_pdf = false;
+                true
             }
-            Material::_Metal { albedo, fuzz } => {
+            Material::Metal { albedo, fuzz } => {
                 let mut reflected = Vec3::reflect(r_in.dir, rec.normal);
                 reflected = Vec3::unit_vector(reflected) + Vec3::random_unit_vector() * (*fuzz);
-                let scattered = Ray {
+                srec.attenuation = *albedo;
+                srec.skip_pdf = true;
+                srec.skip_pdf_ray = Ray {
                     ori: rec.p,
                     dir: reflected,
                     tm: r_in.tm,
                 };
-                let flag = Vec3::dot(&scattered.dir, &rec.normal) > 0.0;
-                (*albedo, scattered, flag)
+                true
             }
             Material::_Dielectric { refraction_index } => {
+                srec.attenuation = Color { e: [1.0, 1.0, 1.0] };
+                srec.skip_pdf = true;
+
                 let ri = if rec.front_face {
                     1.0 / (*refraction_index)
                 } else {
@@ -73,25 +74,19 @@ impl Material {
                 } else {
                     Vec3::refract(unit_direction, rec.normal, ri)
                 };
-                let scattered = Ray {
+                srec.skip_pdf_ray = Ray {
                     ori: rec.p,
                     dir: direction,
                     tm: r_in.tm,
                 };
-                (Color { e: [1.0, 1.0, 1.0] }, scattered, true)
+                true
             }
-            Material::Diffuselight { tex: _ } => (Color::new(), Ray::new(), false),
+            Material::Diffuselight { tex: _ } => true,
             Material::_Isotropic { tex } => {
-                *pdf = 1.0 / (4.0 * std::f64::consts::PI);
-                (
-                    tex.value(rec.u, rec.v, &rec.p),
-                    Ray {
-                        ori: rec.p,
-                        dir: Vec3::random_unit_vector(),
-                        tm: r_in.tm,
-                    },
-                    true,
-                )
+                srec.attenuation = tex.value(rec.u, rec.v, &rec.p);
+                srec.pdf_ptr = Box::new(Pdf::Spherepdf);
+                srec.skip_pdf = false;
+                true
             }
         }
     }
@@ -99,7 +94,7 @@ impl Material {
     pub fn emitted(&self, _r_in: &Ray, rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
         match self {
             Material::Lambertian { tex: _ } => Color::new(),
-            Material::_Metal { albedo: _, fuzz: _ } => Color::new(),
+            Material::Metal { albedo: _, fuzz: _ } => Color::new(),
             Material::_Dielectric {
                 refraction_index: _,
             } => Color::new(),
@@ -122,7 +117,7 @@ impl Material {
                     cosine / std::f64::consts::PI
                 }
             }
-            Material::_Metal { albedo: _, fuzz: _ } => 0.0,
+            Material::Metal { albedo: _, fuzz: _ } => 0.0,
             Material::_Dielectric {
                 refraction_index: _,
             } => 0.0,
@@ -137,21 +132,9 @@ fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
     r0 = r0 * r0;
     r0 + (1.0 - r0) * (1.0 - cosine).powf(5.0)
 }
-
-/*
-impl _Dielectric {
+pub struct ScatterRecord {
+    pub attenuation: Color,
+    pub pdf_ptr: Box<Pdf>,
+    pub skip_pdf: bool,
+    pub skip_pdf_ray: Ray,
 }
-pub trait Material {
-    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> (Color, Ray, bool);
-}
-
-pub struct Lambertian {
-    pub albedo: Color,
-}
-pub struct _Metal {
-    pub albedo: Color,
-    pub fuzz: f64,
-}
-pub struct _Dielectric {
-    pub refraction_index: f64,
-}*/

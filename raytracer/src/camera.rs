@@ -9,6 +9,7 @@ use std::thread;
 use crate::onb::pdf::Pdf;
 //use crate::onb::Onb;
 
+use crate::hittable_list::material::ScatterRecord;
 use crate::hittable_list::HitObject;
 //use crate::hittable_list::HittableList;
 use crate::rtweekend::color::write_color;
@@ -96,28 +97,39 @@ impl Camera {
             },
         );
         if flag {
+            let mut srec = ScatterRecord {
+                attenuation: Color::new(),
+                pdf_ptr: Box::new(Pdf::Spherepdf),
+                skip_pdf: false,
+                skip_pdf_ray: Ray::new(),
+            };
             let color_from_emission = rec.mat.emitted(r, &rec, rec.u, rec.v, &rec.p);
 
-            let mut pdf_val = 0.0; // = scattering_pdf;
-            let (attenuation, _scattered, flag1) = rec.mat.scatter(r, &rec, &mut pdf_val);
-            //    dbg!(pdf);
-            if flag1 {
+            if rec.mat.scatter(r, &rec, &mut srec) {
+                if srec.skip_pdf {
+                    return self.ray_color(&srec.skip_pdf_ray, depth - 1, world, lights)
+                        * srec.attenuation;
+                }
                 let obj = lights.get_objects();
-                let light_pdf = Pdf::Hittablepdf {
+                let light_ptr = Pdf::Hittablepdf {
                     objects: Box::new(obj[0].clone()),
                     ori: rec.p,
                 };
+                let mixed_pdf = Pdf::Mixturepdf {
+                    p: [Box::new(light_ptr), srec.pdf_ptr],
+                };
+
                 let scattered = Ray {
                     ori: rec.p,
-                    dir: light_pdf.generate(),
+                    dir: mixed_pdf.generate(),
                     tm: r.tm,
                 };
-                pdf_val = light_pdf.value(scattered.dir);
+                let pdf_val = mixed_pdf.value(scattered.dir);
 
                 let scattering_pdf = rec.mat.scattering_pdf(r, &rec, &scattered);
 
                 let color_from_scatter = (self.ray_color(&scattered, depth - 1, world, lights)
-                    * attenuation
+                    * srec.attenuation
                     * scattering_pdf)
                     / pdf_val;
                 //    dbg!(color_from_emission);
