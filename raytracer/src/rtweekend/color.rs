@@ -14,13 +14,13 @@ pub fn write_color(pixel_color: &Color, file: &mut File) {
     let mut g = pixel_color.e[1];
     let mut b = pixel_color.e[2];
 
-    if r != r {
+    if r.is_nan() {
         r = 0.0;
     }
-    if g != g {
+    if g.is_nan() {
         g = 0.0;
     }
-    if b != b {
+    if b.is_nan() {
         b = 0.0;
     }
 
