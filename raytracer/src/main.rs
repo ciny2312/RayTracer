@@ -11,10 +11,10 @@ use std::path::Path;
 use crate::camera::Camera;
 //use crate::hittable_list::HitObject;
 //use crate::hittable_list::hittable::_build_constant_medium;
-//use crate::hittable_list::hittable::_build_sphere;
 use crate::hittable_list::hittable::build_box;
 use crate::hittable_list::hittable::build_quad;
 use crate::hittable_list::hittable::build_rotate;
+use crate::hittable_list::hittable::build_sphere;
 use crate::hittable_list::hittable::build_translate;
 use crate::hittable_list::hittable::bvh_node;
 use crate::hittable_list::hittable::new_hittable_list;
@@ -377,18 +377,18 @@ fn main() {
         },
         white.clone(),
     ));
-    let aluminum = Material::Metal {
+    /*    let aluminum = Material::Metal {
         albedo: Color {
             e: [0.8, 0.85, 0.88],
         },
         fuzz: 0.0,
-    };
+    };*/
     let box1 = build_box(
         &Point3 { e: [0.0, 0.0, 0.0] },
         &Vec3 {
             e: [165.0, 330.0, 165.0],
         },
-        &aluminum,
+        &white,
     );
     let box1 = build_rotate(&box1, 15.0);
     world.add(build_translate(
@@ -398,19 +398,17 @@ fn main() {
         },
     ));
 
-    let box2 = build_box(
-        &Point3 { e: [0.0, 0.0, 0.0] },
-        &Vec3 {
-            e: [165.0, 165.0, 165.0],
+    let glass = Material::Dielectric {
+        refraction_index: 1.5,
+    };
+    world.add(build_sphere(
+        Point3 {
+            e: [190.0, 90.0, 190.0],
         },
-        &white,
-    );
-    let box2 = build_rotate(&box2, -18.0);
-    world.add(build_translate(
-        &box2,
-        Vec3 {
-            e: [130.0, 0.0, 65.0],
-        },
+        Vec3::new(),
+        90.0,
+        glass,
+        false,
     ));
 
     let mut cam = Camera {

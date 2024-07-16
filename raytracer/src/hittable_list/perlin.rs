@@ -1,5 +1,5 @@
 //use crate::rtweekend::random_double_01;
-use crate::rtweekend::_random_int;
+use crate::rtweekend::random_int;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::vec3::Vec3;
 
@@ -47,7 +47,7 @@ impl Perlin {
     }
     fn _permute(p: &mut [i32; POINT_COUNT], n: usize) {
         for i in 0..n {
-            let target = _random_int(0, i as i32);
+            let target = random_int(0, i as i32);
             p.swap(i, target as usize);
         }
     }

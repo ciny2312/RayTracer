@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 //use crate::rtweekend::interval::Interval;
 use crate::rtweekend::degrees_to_radians;
 use crate::rtweekend::interval::Interval;
+use crate::rtweekend::random_double_01;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Color;
 use crate::rtweekend::vec3::Point3;
@@ -113,7 +114,7 @@ pub fn bvh_node(objects: &mut Vec<HitObject>, start: usize, end: usize) -> HitOb
         bbox,
     }
 }
-pub fn _build_sphere(
+pub fn build_sphere(
     center_st: Point3,
     center_vec: Vec3,
     radius: f64,
@@ -305,4 +306,14 @@ pub fn _build_constant_medium(boundary: &HitObject, density: f64, tex: &Texture)
             tex: Box::new(tex.clone()),
         },
     }
+}
+pub fn random_to_sphere(radius: f64, distance_squared: f64) -> Vec3 {
+    let r1 = random_double_01();
+    let r2 = random_double_01();
+    let z = 1.0 + r2 * ((1.0 - radius * radius / distance_squared).sqrt() - 1.0);
+
+    let phi = 2.0 * std::f64::consts::PI * r1;
+    let x = phi.cos() * (1.0 - z * z).sqrt();
+    let y = phi.sin() * (1.0 - z * z).sqrt();
+    Vec3 { e: [x, y, z] }
 }

@@ -3,11 +3,15 @@ pub mod material;
 pub mod perlin;
 pub mod texture;
 
+use crate::onb::Onb;
+
 use crate::aabb::merge;
 use crate::aabb::Aabb;
+
 //use crate::aabb::point_to_aabb;
 use crate::rtweekend::interval::Interval;
 use crate::rtweekend::random_double_01;
+use crate::rtweekend::random_int;
 use crate::rtweekend::ray::Ray;
 use crate::rtweekend::vec3::Point3;
 use crate::rtweekend::INF;
@@ -472,13 +476,27 @@ impl HitObject {
     pub fn pdf_value(&self, ori: Point3, dir: Vec3) -> f64 {
         match self {
             HitObject::_Sphere {
-                center_st: _,
-                radius: _,
+                center_st,
+                radius,
                 mat: _,
                 is_moving: _,
                 center_vec: _,
                 bbox: _,
-            } => 0.0,
+            } => {
+                let (_rec, flag) = self.hit(
+                    &Ray { ori, dir, tm: 0.0 },
+                    &Interval {
+                        min: 0.001,
+                        max: INF,
+                    },
+                );
+                if !flag {
+                    return 0.0;
+                }
+                let cos_theta_max = (1.0 - radius * radius / (*center_st - ori).sq_length()).sqrt();
+                let solid_angle = 2.0 * std::f64::consts::PI * (1.0 - cos_theta_max);
+                1.0 / solid_angle
+            }
             HitObject::Quad {
                 q: _,
                 u: _,
@@ -509,10 +527,15 @@ impl HitObject {
                 right: _,
                 bbox: _,
             } => 0.0,
-            HitObject::HittableList {
-                objects: _,
-                bbox: _,
-            } => 0.0,
+            HitObject::HittableList { objects, bbox: _ } => {
+                let weight = 1.0 / objects.len() as f64;
+                let mut sum = 0.0;
+                for object in objects {
+                    //& or not
+                    sum += object.pdf_value(ori, dir) * weight;
+                }
+                sum
+            }
             HitObject::Translate {
                 object: _,
                 offset: _,
@@ -534,13 +557,18 @@ impl HitObject {
     pub fn random_from(&self, ori: Point3) -> Vec3 {
         match self {
             HitObject::_Sphere {
-                center_st: _,
-                radius: _,
+                center_st,
+                radius,
                 mat: _,
                 is_moving: _,
                 center_vec: _,
                 bbox: _,
-            } => Vec3::new(),
+            } => {
+                let dir = *center_st - ori;
+                let distance_squared = dir.sq_length();
+                let uvw = Onb::build_from_w(dir);
+                uvw.local(&hittable::random_to_sphere(*radius, distance_squared))
+            }
             HitObject::Quad {
                 q,
                 u,
@@ -560,10 +588,10 @@ impl HitObject {
                 right: _,
                 bbox: _,
             } => Vec3::new(),
-            HitObject::HittableList {
-                objects: _,
-                bbox: _,
-            } => Vec3::new(),
+            HitObject::HittableList { objects, bbox: _ } => {
+                let int_size = objects.len() as i32;
+                objects[random_int(0, int_size - 1) as usize].random_from(ori)
+            }
             HitObject::Translate {
                 object: _,
                 offset: _,
