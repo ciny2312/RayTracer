@@ -13,19 +13,19 @@ pub struct Perlin {
     randvec: [Vec3; POINT_COUNT],
 }
 impl Perlin {
-    pub fn _build_perlin() -> Self {
+    pub fn build_perlin() -> Self {
         let mut randvec = [Vec3::new(); POINT_COUNT];
         for item in randvec.iter_mut().take(POINT_COUNT) {
             *item = Vec3::unit_vector(Vec3::random(-1.0, 1.0));
         }
         Perlin {
-            x: Self::_perlin_generate_perm(),
-            y: Self::_perlin_generate_perm(),
-            z: Self::_perlin_generate_perm(),
+            x: Self::perlin_generate_perm(),
+            y: Self::perlin_generate_perm(),
+            z: Self::perlin_generate_perm(),
             randvec,
         }
     }
-    fn _perlin_interp(c: &[[[Vec3; 3]; 3]; 3], u: f64, v: f64, w: f64) -> f64 {
+    fn perlin_interp(c: &[[[Vec3; 3]; 3]; 3], u: f64, v: f64, w: f64) -> f64 {
         let uu = u * u * (3.0 - 2.0 * u);
         let vv = v * v * (3.0 - 2.0 * v);
         let ww = w * w * (3.0 - 2.0 * w);
@@ -45,18 +45,18 @@ impl Perlin {
         }
         accum
     }
-    fn _permute(p: &mut [i32; POINT_COUNT], n: usize) {
+    fn permute(p: &mut [i32; POINT_COUNT], n: usize) {
         for i in 0..n {
             let target = random_int(0, i as i32);
             p.swap(i, target as usize);
         }
     }
-    fn _perlin_generate_perm() -> [i32; POINT_COUNT] {
+    fn perlin_generate_perm() -> [i32; POINT_COUNT] {
         let mut p = [0; POINT_COUNT];
         for (i, item) in p.iter_mut().enumerate().take(POINT_COUNT) {
             *item = i as i32;
         }
-        Self::_permute(&mut p, POINT_COUNT);
+        Self::permute(&mut p, POINT_COUNT);
         p
     }
     pub fn noise(&self, p: &Point3) -> f64 {
@@ -79,7 +79,7 @@ impl Perlin {
                 }
             }
         }
-        Self::_perlin_interp(&c, u, v, w)
+        Self::perlin_interp(&c, u, v, w)
     }
     pub fn turb(&self, p: &Point3, depth: i32) -> f64 {
         let mut accum = 0.0;

@@ -8,6 +8,9 @@ mod rtweekend;
 use std::fs::{self, File};
 use std::path::Path;
 
+use hittable_list::hittable::build_constant_medium;
+use hittable_list::texture::Texture;
+
 use crate::camera::Camera;
 //use crate::hittable_list::HitObject;
 //use crate::hittable_list::hittable::_build_constant_medium;
@@ -23,7 +26,7 @@ use crate::hittable_list::material::Material;
 //use crate::hittable_list::material::_Dielectric;
 //use crate::hittable_list::material::Lambertian;
 //use crate::hittable_list::material::_Metal;
-//use crate::hittable_list::perlin::Perlin;
+use crate::hittable_list::perlin::Perlin;
 //use crate::hittable_list::texture::Texture;
 use crate::hittable_list::texture::Texture::SolidColor;
 
@@ -273,6 +276,12 @@ fn main() {
             },
         }),
     };
+    let perlin = Material::Lambertian {
+        tex: Box::new(Texture::Noisetexture {
+            noise: Box::new(Perlin::build_perlin()),
+            scale: 10.0,
+        }),
+    };
     let white = Material::Lambertian {
         tex: Box::new(SolidColor {
             albedo: Color {
@@ -315,7 +324,7 @@ fn main() {
         Vec3 {
             e: [0.0, 0.0, 555.0],
         },
-        red,
+        perlin,
     ));
 
     let mut lights = new_hittable_list();
@@ -328,6 +337,26 @@ fn main() {
         },
         Vec3 {
             e: [0.0, 0.0, -105.0],
+        },
+        light.clone(),
+    ));
+    lights.add(build_quad(
+        Point3 { e: [1.0, 1.0, 1.0] },
+        Vec3 {
+            e: [0.0, 0.0, 50.0],
+        },
+        Vec3 {
+            e: [50.0, 0.0, 0.0],
+        },
+        light.clone(),
+    ));
+    world.add(build_quad(
+        Point3 { e: [1.0, 1.0, 1.0] },
+        Vec3 {
+            e: [0.0, 0.0, 50.0],
+        },
+        Vec3 {
+            e: [50.0, 0.0, 0.0],
         },
         light.clone(),
     ));
@@ -377,18 +406,18 @@ fn main() {
         },
         white.clone(),
     ));
-    /*    let aluminum = Material::Metal {
+    let aluminum = Material::Metal {
         albedo: Color {
             e: [0.8, 0.85, 0.88],
         },
         fuzz: 0.0,
-    };*/
+    };
     let box1 = build_box(
         &Point3 { e: [0.0, 0.0, 0.0] },
         &Vec3 {
-            e: [165.0, 330.0, 165.0],
+            e: [100.0, 150.0, 100.0],
         },
-        &white,
+        &aluminum,
     );
     let box1 = build_rotate(&box1, 15.0);
     world.add(build_translate(
@@ -403,21 +432,48 @@ fn main() {
     };
     world.add(build_sphere(
         Point3 {
-            e: [190.0, 90.0, 190.0],
+            e: [190.0, 290.0, 190.0],
         },
         Vec3::new(),
-        90.0,
-        glass.clone(),
-        false,
-    ));
-    lights.add(build_sphere(
-        Point3 {
-            e: [190.0, 90.0, 190.0],
-        },
-        Vec3::new(),
-        90.0,
+        50.0,
         glass,
         false,
+    ));
+    world.add(build_sphere(
+        Point3 {
+            e: [150.0, 90.0, 120.0],
+        },
+        Vec3::new(),
+        50.0,
+        red,
+        false,
+    ));
+    world.add(build_sphere(
+        Point3 {
+            e: [150.0, 390.0, 120.0],
+        },
+        Vec3 {
+            e: [0.0, 20.0, 0.0],
+        },
+        20.0,
+        white.clone(),
+        true,
+    ));
+    let constant = SolidColor {
+        albedo: Color { e: [0.0, 0.3, 1.0] },
+    };
+    world.add(build_constant_medium(
+        &build_sphere(
+            Point3 {
+                e: [400.0, 400.0, 370.0],
+            },
+            Vec3::new(),
+            70.0,
+            white,
+            false,
+        ),
+        0.02,
+        &constant,
     ));
 
     let mut cam = Camera {
@@ -456,5 +512,5 @@ fn main() {
     let mut objects = world.get_objects();
     let size = objects.len();
     let bvh_root = bvh_node(&mut objects, 0, size);
-    cam.render(bvh_root, lights, &mut file, 16);
+    cam.render(bvh_root, lights, &mut file, 8);
 }

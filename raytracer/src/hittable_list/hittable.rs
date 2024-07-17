@@ -132,7 +132,7 @@ pub fn build_sphere(
     } else {
         point_to_aabb(&(center_st - v), &(center_st + v))
     };
-    HitObject::_Sphere {
+    HitObject::Sphere {
         center_st,
         radius,
         mat,
@@ -298,11 +298,11 @@ pub fn build_rotate(object: &HitObject, angle: f64) -> HitObject {
         bbox: point_to_aabb(&min, &max),
     }
 }
-pub fn _build_constant_medium(boundary: &HitObject, density: f64, tex: &Texture) -> HitObject {
-    HitObject::_ConstantMedium {
+pub fn build_constant_medium(boundary: &HitObject, density: f64, tex: &Texture) -> HitObject {
+    HitObject::ConstantMedium {
         boundary: Box::new(boundary.clone()),
         neg_inv_density: -1.0 / density,
-        phase_function: Material::_Isotropic {
+        phase_function: Material::Isotropic {
             tex: Box::new(tex.clone()),
         },
     }

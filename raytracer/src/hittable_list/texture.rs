@@ -14,7 +14,7 @@ pub enum Texture {
         odd: Box<Texture>,
     },*/
     _Imagetexture { image: Box<RtwImage> },
-    _Noisetexture { noise: Box<Perlin>, scale: f64 },
+    Noisetexture { noise: Box<Perlin>, scale: f64 },
 }
 impl Texture {
     pub fn value(&self, u: f64, v: f64, p: &Point3) -> Color {
@@ -46,7 +46,7 @@ impl Texture {
                     e: image.pixel_data(i, j),
                 }
             }
-            Texture::_Noisetexture { noise, scale } => {
+            Texture::Noisetexture { noise, scale } => {
                 Color { e: [0.5, 0.5, 0.5] }
                     * (1.0 + (scale * p.e[2] + 10.0 * noise.turb(p, 7)).sin())
             }

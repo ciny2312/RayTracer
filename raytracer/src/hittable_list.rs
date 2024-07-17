@@ -23,7 +23,7 @@ use crate::hittable_list::material::Material;
 
 #[derive(Clone, Debug)]
 pub enum HitObject {
-    _Sphere {
+    Sphere {
         center_st: Point3,
         radius: f64,
         mat: Material,
@@ -62,7 +62,7 @@ pub enum HitObject {
         cos_theta: f64,
         bbox: Aabb,
     },
-    _ConstantMedium {
+    ConstantMedium {
         boundary: Box<HitObject>,
         neg_inv_density: f64,
         phase_function: Material,
@@ -72,7 +72,7 @@ pub enum HitObject {
 impl HitObject {
     pub fn bounding_box(&self) -> Aabb {
         match self {
-            HitObject::_Sphere {
+            HitObject::Sphere {
                 center_st: _,
                 radius: _,
                 mat: _,
@@ -108,7 +108,7 @@ impl HitObject {
                 cos_theta: _,
                 bbox,
             } => bbox.clone(),
-            HitObject::_ConstantMedium {
+            HitObject::ConstantMedium {
                 boundary,
                 neg_inv_density: _,
                 phase_function: _,
@@ -117,7 +117,7 @@ impl HitObject {
     }
     pub fn get_objects(&self) -> Vec<HitObject> {
         match self {
-            HitObject::_Sphere {
+            HitObject::Sphere {
                 center_st: _,
                 radius: _,
                 mat: _,
@@ -153,7 +153,7 @@ impl HitObject {
                 cos_theta: _,
                 bbox: _,
             } => Vec::new(),
-            HitObject::_ConstantMedium {
+            HitObject::ConstantMedium {
                 boundary: _,
                 neg_inv_density: _,
                 phase_function: _,
@@ -162,7 +162,7 @@ impl HitObject {
     }
     fn cur_center(&self, time: f64) -> Point3 {
         match self {
-            HitObject::_Sphere {
+            HitObject::Sphere {
                 center_st,
                 radius: _,
                 mat: _,
@@ -201,7 +201,7 @@ impl HitObject {
                 cos_theta: _,
                 bbox: _,
             } => Vec3::new(),
-            HitObject::_ConstantMedium {
+            HitObject::ConstantMedium {
                 boundary: _,
                 neg_inv_density: _,
                 phase_function: _,
@@ -210,7 +210,7 @@ impl HitObject {
     }
     pub fn hit(&self, r: &Ray, ray_t: &Interval) -> (HitRecord, bool) {
         match self {
-            HitObject::_Sphere {
+            HitObject::Sphere {
                 center_st,
                 radius,
                 mat,
@@ -371,7 +371,7 @@ impl HitObject {
 
                 (rec_cur, true)
             }
-            HitObject::_ConstantMedium {
+            HitObject::ConstantMedium {
                 boundary,
                 neg_inv_density,
                 phase_function,
@@ -427,7 +427,7 @@ impl HitObject {
     }
     pub fn add(&mut self, object: HitObject) {
         match self {
-            HitObject::_Sphere {
+            HitObject::Sphere {
                 center_st: _,
                 radius: _,
                 mat: _,
@@ -466,7 +466,7 @@ impl HitObject {
                 cos_theta: _,
                 bbox: _,
             } => (),
-            HitObject::_ConstantMedium {
+            HitObject::ConstantMedium {
                 boundary: _,
                 neg_inv_density: _,
                 phase_function: _,
@@ -475,7 +475,7 @@ impl HitObject {
     }
     pub fn pdf_value(&self, ori: Point3, dir: Vec3) -> f64 {
         match self {
-            HitObject::_Sphere {
+            HitObject::Sphere {
                 center_st,
                 radius,
                 mat: _,
@@ -547,7 +547,7 @@ impl HitObject {
                 cos_theta: _,
                 bbox: _,
             } => 0.0,
-            HitObject::_ConstantMedium {
+            HitObject::ConstantMedium {
                 boundary: _,
                 neg_inv_density: _,
                 phase_function: _,
@@ -556,7 +556,7 @@ impl HitObject {
     }
     pub fn random_from(&self, ori: Point3) -> Vec3 {
         match self {
-            HitObject::_Sphere {
+            HitObject::Sphere {
                 center_st,
                 radius,
                 mat: _,
@@ -603,7 +603,7 @@ impl HitObject {
                 cos_theta: _,
                 bbox: _,
             } => Vec3::new(),
-            HitObject::_ConstantMedium {
+            HitObject::ConstantMedium {
                 boundary: _,
                 neg_inv_density: _,
                 phase_function: _,
