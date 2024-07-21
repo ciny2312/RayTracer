@@ -307,6 +307,16 @@ pub fn build_constant_medium(boundary: &HitObject, density: f64, tex: &Texture) 
         },
     }
 }
+pub fn build_triangle(a:Point3,b:Point3,c:Point3,mat: Material)->HitObject{
+    let mut n = Vec3::cross(&(a-b), &(b-c));    
+    if n.e[0]>0.0{//n.e[0]
+        n=-n;
+    }
+    let normal = Vec3::unit_vector(n);
+    let bbox=merge(&point_to_aabb(&a, &b),&point_to_aabb(&a, &c));
+    let area=n.length()/2.0;
+    HitObject::Triangle { v1: a, v2: b, v3: c, mat,normal,area, bbox }
+}
 pub fn random_to_sphere(radius: f64, distance_squared: f64) -> Vec3 {
     let r1 = random_double_01();
     let r2 = random_double_01();

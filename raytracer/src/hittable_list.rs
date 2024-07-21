@@ -67,6 +67,15 @@ pub enum HitObject {
         neg_inv_density: f64,
         phase_function: Material,
     },
+    Triangle {
+        v1:Point3,
+        v2:Point3,
+        v3:Point3,
+        mat:Material,
+        normal:Vec3,
+        bbox:Aabb,
+        area:f64,
+    }
 }
 
 impl HitObject {
@@ -113,6 +122,15 @@ impl HitObject {
                 neg_inv_density: _,
                 phase_function: _,
             } => boundary.bounding_box(),
+            HitObject::Triangle {
+                v1:_,
+                v2:_,
+                v3:_,
+                normal:_,
+                mat:_,
+                bbox,
+                area:_,
+            }=>bbox.clone(),
         }
     }
     pub fn get_objects(&self) -> Vec<HitObject> {
@@ -158,6 +176,15 @@ impl HitObject {
                 neg_inv_density: _,
                 phase_function: _,
             } => Vec::new(),
+            HitObject::Triangle {
+                v1:_,
+                v2:_,
+                v3:_,
+                normal:_,
+                mat:_,
+                bbox:_,
+                area:_,
+            }=>Vec::new()
         }
     }
     fn cur_center(&self, time: f64) -> Point3 {
@@ -205,6 +232,15 @@ impl HitObject {
                 boundary: _,
                 neg_inv_density: _,
                 phase_function: _,
+            } => Vec3::new(),
+            HitObject::Triangle {
+                v1:_,
+                v2:_,
+                v3:_,
+                normal:_,
+                mat:_,
+                bbox:_,
+                area:_,
             } => Vec3::new(),
         }
     }
@@ -280,6 +316,33 @@ impl HitObject {
                 rec.p = intersection;
                 rec.mat = mat.clone();
                 rec.set_face_normal(r, *normal);
+                (rec, true)
+            }
+            HitObject::Triangle { v1, v2, v3, mat,normal,bbox,
+                area:_, }=>{
+                let mut rec = HitRecord::new();
+                if Vec3::dot(&Vec3::unit_vector(r.ori-*v1),normal)<=0.0001{
+                    return (rec,false);
+                }
+                let light_d=Vec3::dot(&(*v1-r.ori),normal)/Vec3::dot(&r.dir,normal);
+                if light_d<=0.0{
+                    return (rec,false);
+                }
+                rec.t = light_d;
+                rec.p = r.at(light_d);
+                rec.mat = mat.clone();
+                rec.set_face_normal(r, *normal);
+ 
+                let a=Vec3::unit_vector(*v1-rec.p);
+                let b=Vec3::unit_vector(*v2-rec.p);
+                let c=Vec3::unit_vector(*v3-rec.p);
+                let sa=Vec3::unit_vector(Vec3::cross(&a,& b));
+                let sb=Vec3::unit_vector(Vec3::cross(&b,& c));
+                let sc=Vec3::unit_vector(Vec3::cross(&c,& a));
+
+                if !(Vec3::dot(&sa,&sb) >0.999 && Vec3::dot(&sb,&sc) >0.999 && Vec3::dot(&sc,&sa) >0.999){
+                    return (rec,false);
+                }
                 (rec, true)
             }
             HitObject::Bvh { left, right, bbox } => {
@@ -471,6 +534,15 @@ impl HitObject {
                 neg_inv_density: _,
                 phase_function: _,
             } => (),
+            HitObject::Triangle {
+                v1:_,
+                v2:_,
+                v3:_,
+                normal:_,
+                mat:_,
+                bbox:_,
+                area:_,
+            }=>(),
         }
     }
     pub fn pdf_value(&self, ori: Point3, dir: Vec3) -> f64 {
@@ -521,6 +593,17 @@ impl HitObject {
                 let distance_squared = rec.t * rec.t * dir.sq_length();
                 let cosine = (Vec3::dot(&dir, &rec.normal) / dir.length()).abs();
                 distance_squared / (cosine * area)
+            }
+            HitObject::Triangle {
+                v1:_,
+                v2:_,
+                v3:_,
+                normal:_,
+                mat:_,
+                bbox:_,
+                area,
+            }=>{
+                1.0/area
             }
             HitObject::Bvh {
                 left: _,
@@ -582,6 +665,17 @@ impl HitObject {
             } => {
                 let p = (*q) + ((*u) * random_double_01()) + ((*v) * random_double_01());
                 p - ori
+            }
+            HitObject::Triangle {
+                v1:_,
+                v2:_,
+                v3:_,
+                normal:_,
+                mat:_,
+                bbox:_,
+                area:_,
+            }=>{
+                Vec3::new()
             }
             HitObject::Bvh {
                 left: _,
